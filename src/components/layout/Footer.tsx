@@ -44,11 +44,11 @@ export default function Footer() {
 
               <Button variant="link" size="none" className="block m-0 p-0">
                 <a
-                  href="mailto:gabriel.menezes@aluno.uepb.edu.br"
+                  href="mailto:rpg.uepbpatos@gmail.com"
                   className="font-light flex items-center gap-2 text-xs my-0.5"
                 >
                   <Mail size={16} />
-                  <span>gabriel.menezes@aluno.uepb.edu.br</span>
+                  <span>rpg.uepbpatos@gmail.com</span>
                 </a>
               </Button>
             </div>
