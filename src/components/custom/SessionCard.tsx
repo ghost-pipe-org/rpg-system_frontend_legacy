@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { Session } from "@/services/sessionServices/session.types";
-import { enrollInSession } from "@/services/sessionServices/session.services";
+import { enrollInSession, cancelEnrollment } from "@/services/sessionServices/session.services";
 import { toast } from "sonner";
 import { useState } from "react";
 import { formatDateBR } from "@/utils/formatDate";
@@ -37,6 +37,8 @@ interface SessionCardProps {
   isExpanded: boolean;
   onToggleExpand: (sessionId: string) => void;
   onEnrollSuccess?: () => void;
+  onCancelSuccess?: () => void;
+  variant?: 'default' | 'enrolled';
 }
 
 const systemLogos: Record<string, string> = {
@@ -55,8 +57,19 @@ export function SessionCard({
   isExpanded,
   onToggleExpand,
   onEnrollSuccess,
+  onCancelSuccess,
+  variant = 'default',
 }: SessionCardProps) {
   const [enrolling, setEnrolling] = useState(false);
+  const [canceling, setCanceling] = useState(false);
+
+  const isEnrollmentClosed = session.approvedDate 
+    ? new Date().setHours(0,0,0,0) >= new Date(session.approvedDate).setHours(0,0,0,0)
+    : false;
+
+  const isCancellationWindowClosed = session.approvedDate
+    ? (new Date(session.approvedDate).getTime() - Date.now()) / (1000 * 60 * 60) < 24
+    : false;
 
   const handleEnroll = async () => {
     if (!session.id) {
@@ -85,6 +98,35 @@ export function SessionCard({
       toast.error(errorMessage);
     } finally {
       setEnrolling(false);
+    }
+  };
+
+  const handleCancelEnrollment = async () => {
+    if (!session.id) {
+      toast.error("ID da sessão não encontrado");
+      return;
+    }
+
+    try {
+      setCanceling(true);
+      await cancelEnrollment(session.id);
+      toast.success("Inscrição cancelada com sucesso!");
+      
+      if (onCancelSuccess) {
+        onCancelSuccess();
+      }
+    } catch (error: unknown) {
+      console.error("Erro ao cancelar inscrição:", error);
+      
+      let errorMessage = "Erro ao cancelar inscrição";
+      if (error && typeof error === 'object' && 'response' in error) {
+        const axiosError = error as { response?: { data?: { message?: string } } };
+        errorMessage = axiosError.response?.data?.message || errorMessage;
+      }
+      
+      toast.error(errorMessage);
+    } finally {
+      setCanceling(false);
     }
   };
 
@@ -135,7 +177,7 @@ export function SessionCard({
                 <strong className="font-mono">Mestre:</strong> {session.master?.name || 'Não informado'}
               </p>
               <p>
-                <strong className="font-mono">Sala:</strong> {session.room || 'Não informado'}
+                <strong className="font-mono">Local:</strong> {session.location || 'Não informado'}
               </p>
               <p>
                 <strong className="font-mono">Vagas disponíveis:</strong>
@@ -156,18 +198,41 @@ export function SessionCard({
               </div>
             </div>
 
-            <Button
-              className="w-full mt-2 uppercase"
-              disabled={(session.slots || 0) === 0 || enrolling}
-              onClick={handleEnroll}
-            >
-              {enrolling 
-                ? "Inscrevendo..." 
-                : (session.slots || 0) > 0 
-                  ? "Inscreva-se" 
-                  : "Sem Vagas Disponíveis"
-              }
-            </Button>
+            {variant === 'default' ? (
+              <Button
+                className="w-full mt-2 uppercase"
+                disabled={(session.slots || 0) === 0 || enrolling || isEnrollmentClosed}
+                onClick={handleEnroll}
+              >
+                {enrolling 
+                  ? "Inscrevendo..." 
+                  : isEnrollmentClosed
+                    ? "Inscrições Encerradas"
+                    : (session.slots || 0) > 0 
+                      ? "Inscreva-se" 
+                      : "Sem Vagas Disponíveis"
+                }
+              </Button>
+            ) : (
+              <Button
+                variant="destructive"
+                className="w-full mt-2 uppercase"
+                disabled={canceling || isCancellationWindowClosed}
+                onClick={handleCancelEnrollment}
+                title={
+                  isCancellationWindowClosed
+                    ? "Não é possível cancelar com menos de 24h de antecedência"
+                    : undefined
+                }
+              >
+                {canceling
+                  ? "Cancelando..."
+                  : isCancellationWindowClosed
+                    ? "Prazo de cancelamento encerrado"
+                    : "Cancelar Inscrição"
+                }
+              </Button>
+            )}
           </div>
         )}
       </CardContent>

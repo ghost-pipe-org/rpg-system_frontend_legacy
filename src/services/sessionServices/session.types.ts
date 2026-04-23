@@ -10,8 +10,7 @@ interface Session {
     masterId?: string;
     createdAt?: string;
     updatedAt?: string;
-    date?: Date | null;
-    possibledate?: Date[];
+
     possibleDates?: {
         id: string;
         date: string;
@@ -19,7 +18,7 @@ interface Session {
     master?: {
         name: string;
     };
-    room?: string;
+
     slots?: number;
     requirements: string;
     iconUrl?: string;

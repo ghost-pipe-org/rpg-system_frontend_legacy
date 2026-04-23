@@ -42,3 +42,13 @@ export const enrollInSession = async (sessionId: string) => {
     const response = await api.post(`/sessions/${sessionId}/subscribe`);
     return response.data;
 };
+
+export const cancelEnrollment = async (sessionId: string) => {
+    const response = await api.delete(`/sessions/${sessionId}/enrollments/me`);
+    return response.data;
+};
+
+export const cancelApprovedSession = async (sessionId: string, cancelEvent: string) => {
+    const response = await api.delete(`/sessions/${sessionId}/cancel`, { data: { cancelEvent } });
+    return response.data;
+};

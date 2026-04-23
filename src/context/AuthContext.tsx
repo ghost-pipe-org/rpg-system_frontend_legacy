@@ -11,6 +11,7 @@ interface AuthContextType {
   login: (credentials: LoginCredentials) => Promise<void>;
   logout: () => void;
   refreshUser: () => void;
+  updateUser: (userData: User) => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -84,6 +85,14 @@ export function AuthProvider({ children }: AuthProviderProps) {
     loadAuthData();
   };
 
+  const updateUser = (userData: User) => {
+    const token = Cookies.get('auth_token');
+    if (token) {
+      saveAuthData(token, userData);
+      setUser(userData);
+    }
+  };
+
   useEffect(() => {
     loadAuthData();
   }, []);
@@ -119,6 +128,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     login,
     logout,
     refreshUser,
+    updateUser,
   };
 
   return (

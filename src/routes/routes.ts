@@ -16,7 +16,7 @@ export const ROUTE_LABELS = {
   [ROUTES.LOGIN]: 'Login',
   [ROUTES.REGISTER]: 'Cadastro',
   [ROUTES.SESSIONS]: 'Sessões',
-  [ROUTES.CREATE_SESSIONS]: 'Criar Sessão',
+  [ROUTES.CREATE_SESSIONS]: 'Emitir Sessão',
   [ROUTES.PROFILE]: 'Perfil',
   [ROUTES.ADMIN]: 'Admin',
   [ROUTES.TEST]: 'Testes'
@@ -51,7 +51,7 @@ export const routes = [
     path: '/sessions/create',
     element: CreateSessions,
     requireAuth: true,
-    title: 'Criar Nova Sessão'
+    title: 'Emitir Nova Sessão'
   },
   {
     path: '/profile',

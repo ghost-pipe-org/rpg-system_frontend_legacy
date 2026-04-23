@@ -51,11 +51,7 @@ const Admin = () => {
   const [cancelEvent, setCancelEvent] = useState("");
 
   // Verifica se o usuário é admin
-  const isAdmin = 
-    user?.role === 'ADMIN' || 
-    user?.isAdmin === true ||
-    user?.enrollment === '000000001' ||
-    user?.email?.toLowerCase().includes('admin');
+  const isAdmin = user?.role === 'ADMIN';
 
   const fetchPendingSessions = async () => {
     try {

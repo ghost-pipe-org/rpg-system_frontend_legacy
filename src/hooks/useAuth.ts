@@ -7,7 +7,7 @@ export function useAuthState() {
     user,
     isAuthenticated,
     isLoading,
-    isMaster: user?.masterConfirm || false,
+    isMaster: user?.role === 'MASTER' || user?.role === 'ADMIN',
     userName: user?.name || 'Usuário',
     userEmail: user?.email || '',
   };

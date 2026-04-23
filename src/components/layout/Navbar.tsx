@@ -34,11 +34,7 @@ export default function Navbar() {
     location.pathname === ROUTES.LOGIN || location.pathname === ROUTES.REGISTER;
 
   // Verifica se o usuário é admin
-  const isAdmin = 
-    user?.role === 'ADMIN' || 
-    user?.isAdmin === true ||
-    user?.enrollment === '000000001' ||
-    user?.email?.toLowerCase().includes('admin');
+  const isAdmin = user?.role === 'ADMIN';
 
   const pages: Page[] = [
     {

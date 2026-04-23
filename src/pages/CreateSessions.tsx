@@ -35,6 +35,7 @@ const CreateSessions = () => {
   const addDate = () => {
     const newDate = new Date();
     newDate.setDate(newDate.getDate() + 7);
+    newDate.setHours(12, 0, 0, 0);
     
     const updatedDates = [...possibleDates, newDate];
     setPossibleDates(updatedDates);
@@ -69,8 +70,8 @@ const CreateSessions = () => {
       form.reset();
       setPossibleDates([]);
     } catch (error) {
-      console.error('Erro ao criar sessão:', error);
-      toast.error('Erro ao criar sessão. Tente novamente.');
+      console.error('Erro ao emitir sessão:', error);
+      toast.error('Erro ao emitir sessão. Tente novamente.');
     } finally {
       setIsSubmitting(false);
     }
@@ -88,7 +89,7 @@ const CreateSessions = () => {
     <RootLayout>
       <div className="mx-auto max-w-md w-full">
         <h1 className="text-4xl font-bold text-foreground mb-8 text-center">
-          Criar Nova Sessão
+          Emitir Nova Sessão
         </h1>
 
         <Form {...form}>
@@ -281,7 +282,7 @@ const CreateSessions = () => {
                           className="font-prompt"
                           value={date.toISOString().slice(0, 10)}
                           onChange={(e) => {
-                            const newDate = new Date(e.target.value);
+                            const newDate = new Date(e.target.value + 'T12:00:00');
                             updateDate(index, newDate.toISOString());
                           }}
                           placeholder={formatDate(date)}
@@ -315,7 +316,7 @@ const CreateSessions = () => {
               className="w-full font-prompt uppercase"
               disabled={isSubmitting}
             >
-              {isSubmitting ? "Criando sessão..." : "Criar sessão"}
+              {isSubmitting ? "Emitindo sessão..." : "Emitir sessão"}
             </Button>
           </form>
         </Form>

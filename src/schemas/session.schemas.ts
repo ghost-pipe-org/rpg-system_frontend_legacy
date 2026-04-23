@@ -13,11 +13,6 @@ export const System = {
 
 export type System = typeof System[keyof typeof System];
 
-export const possibleDateSchema = z.object({
-  date: z.date('Data deve estar no formato ISO'),
-  time: z.string().min(1, 'Horário é obrigatório'),
-});
-
 export const createSessionSchema = z.object({
   title: z.string()
     .min(3, 'Título deve ter pelo menos 3 caracteres')
@@ -61,4 +56,4 @@ export const createSessionSchema = z.object({
 );
 
 export type CreateSessionFormData = z.infer<typeof createSessionSchema>;
-export type PossibleDate = z.infer<typeof possibleDateSchema>;
+
