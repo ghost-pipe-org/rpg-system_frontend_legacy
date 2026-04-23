@@ -20,3 +20,8 @@ export const updateUserEmail = async (data: any) => {
     const response = await api.patch('/users/email', data);
     return response.data;
 };
+
+export const searchUserByEmail = async (email: string) => {
+    const response = await api.get(`/users/search?email=${encodeURIComponent(email)}`);
+    return response.data;
+};

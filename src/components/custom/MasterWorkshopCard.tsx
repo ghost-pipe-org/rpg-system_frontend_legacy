@@ -12,57 +12,46 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import type { Session } from "@/services/sessionServices/session.types";
-import { cancelApprovedSession } from "@/services/sessionServices/session.services";
+import { cancelApprovedWorkshop } from "@/services/sessionServices/session.services";
 import { formatDateBR } from "@/utils/formatDate";
 import { Users, Mail, Phone } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 
-const systemLogos: Record<string, string> = {
-  'D&D 5e': '/icons/d&d-logo.svg',
-  'Vampiro: A Máscara': '/icons/vampiro-logo.png',
-  'Kaos em Nova Patos': '/logos/kaos.png',
-  'Ordem Paranormal': '/icons/ordem-paranormal-logo.svg',
-  'Tormenta20': '/icons/t20-logo.png',
-  'Pathfinder 2e': '/icons/pathfinder-logo.png',
-  'Call of Cthulhu': '/icons/coc-logo.png',
-  'Outros': '/icons/logo.png'
-};
 
-interface MasterSessionCardProps {
-  session: Session;
+interface MasterWorkshopCardProps {
+  workshop: Session;
   isExpanded: boolean;
-  onToggleExpand: (sessionId: string) => void;
+  onToggleExpand: (workshopId: string) => void;
   onCancelSuccess?: () => void;
 }
 
-export function MasterSessionCard({
-  session,
+export function MasterWorkshopCard({
+  workshop,
   isExpanded,
   onToggleExpand,
   onCancelSuccess,
-}: MasterSessionCardProps) {
+}: MasterWorkshopCardProps) {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [cancelReason, setCancelReason] = useState("");
   const [canceling, setCanceling] = useState(false);
 
-  const systemLogo = systemLogos[session.system || 'Outros'] || systemLogos['Outros'];
-  const enrolledPlayers = session.enrollments?.filter(e => e.user) || [];
-  const enrolledCount = enrolledPlayers.length;
-  const availableSlots = session.maxPlayers - enrolledCount;
+  const enrolledParticipants = workshop.enrollments?.filter(e => e.user) || [];
+  const enrolledCount = enrolledParticipants.length;
+  const availableSlots = workshop.maxPlayers - enrolledCount;
 
-  const canCancelApproved = session.status === "APROVADA" && (() => {
-    if (!session.approvedDate) return false;
-    const diffMs = new Date(session.approvedDate).getTime() - Date.now();
+  const canCancelApproved = workshop.status === "APROVADA" && (() => {
+    if (!workshop.approvedDate) return false;
+    const diffMs = new Date(workshop.approvedDate).getTime() - Date.now();
     return diffMs / (1000 * 60 * 60) >= 48;
   })();
 
   const handleCancelApproved = async () => {
-    if (!session.id) return;
+    if (!workshop.id) return;
     setCanceling(true);
     try {
-      await cancelApprovedSession(session.id, cancelReason);
-      toast.success("Sessão cancelada com sucesso.");
+      await cancelApprovedWorkshop(workshop.id, cancelReason);
+      toast.success("Oficina cancelada com sucesso.");
       setDialogOpen(false);
       setCancelReason("");
       onCancelSuccess?.();
@@ -71,7 +60,7 @@ export function MasterSessionCard({
         error instanceof Error && "response" in error
           ? (error as { response?: { data?: { message?: string } } }).response?.data?.message
           : undefined;
-      toast.error(message || "Não foi possível cancelar a sessão. Tente novamente.");
+      toast.error(message || "Não foi possível cancelar a oficina. Tente novamente.");
     } finally {
       setCanceling(false);
     }
@@ -83,49 +72,44 @@ export function MasterSessionCard({
     return "secondary";
   };
 
+  const facilitatorNames = workshop.facilitators
+    ? workshop.facilitators.map(f => f.user.name).join(', ')
+    : 'Não informado';
+
   return (
     <>
       <Card className="mb-6 bg-background border-2 border-primary/20 shadow-lg">
         <CardHeader className="flex flex-row items-start gap-4 pb-3 font-pixelsans text-foreground">
-          <img
-            src={systemLogo}
-            alt={session.system}
-            className="w-16 h-16 object-contain"
-            onError={(e) => {
-              e.currentTarget.src = systemLogos['Outros'];
-            }}
-          />
-
           <div className="flex-1 space-y-2">
             <div className="flex items-center justify-between">
-              <CardTitle className="text-2xl">{session.title}</CardTitle>
+              <CardTitle className="text-2xl">{workshop.title}</CardTitle>
               <div className="flex items-center gap-2">
-                <Badge variant={statusBadgeVariant(session.status || "")}>
-                  {session.status}
+                <Badge variant={statusBadgeVariant(workshop.status || "")}>
+                  {workshop.status}
                 </Badge>
                 <Badge
                   variant={availableSlots > 0 ? "secondary" : "destructive"}
                 >
-                  {enrolledCount}/{session.maxPlayers} jogadores
+                  {enrolledCount}/{workshop.maxPlayers} participantes
                 </Badge>
               </div>
             </div>
             <p className="text-sm text-muted-foreground font-prompt">
-              {session.system} | {session.approvedDate ? formatDateBR(session.approvedDate) : (session.createdAt && formatDateBR(session.createdAt))} |{" "}
-              {session.period}
+              {workshop.approvedDate ? formatDateBR(workshop.approvedDate) : (workshop.createdAt && formatDateBR(workshop.createdAt))} |{" "}
+              {workshop.period}
             </p>
           </div>
         </CardHeader>
 
         <CardContent className="space-y-4">
-          <p className="leading-relaxed text-foreground">{session.description}</p>
+          <p className="leading-relaxed text-foreground">{workshop.description}</p>
 
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
             <Users className="w-4 h-4" />
             <span>
-              {enrolledCount === 0 && "Nenhum jogador inscrito ainda"}
-              {enrolledCount === 1 && "1 jogador inscrito"}
-              {enrolledCount > 1 && `${enrolledCount} jogadores inscritos`}
+              {enrolledCount === 0 && "Nenhum participante inscrito ainda"}
+              {enrolledCount === 1 && "1 participante inscrito"}
+              {enrolledCount > 1 && `${enrolledCount} participantes inscritos`}
             </span>
           </div>
 
@@ -133,14 +117,14 @@ export function MasterSessionCard({
             <Button
               variant="outline"
               size="sm"
-              onClick={() => session.id && onToggleExpand(session.id)}
+              onClick={() => workshop.id && onToggleExpand(workshop.id)}
               className="text text-accent-foreground font-semibold cursor-pointer py-2 uppercase flex-1"
             >
               <span className="text-sm">{isExpanded ? "Ocultar Detalhes" : "Ver Detalhes"}</span>
               <span>{isExpanded ? "−" : "+"}</span>
             </Button>
 
-            {session.status === "APROVADA" && (
+            {workshop.status === "APROVADA" && (
               <Button
                 variant="destructive"
                 size="sm"
@@ -153,7 +137,7 @@ export function MasterSessionCard({
                     : undefined
                 }
               >
-                {!canCancelApproved ? "Prazo de cancelamento encerrado" : "Cancelar Sessão"}
+                {!canCancelApproved ? "Prazo de cancelamento encerrado" : "Cancelar Oficina"}
               </Button>
             )}
           </div>
@@ -164,16 +148,21 @@ export function MasterSessionCard({
 
               <div className="space-y-3 text-foreground">
                 <p>
-                  <strong className="font-mono">Local:</strong> {session.location || 'Não informado'}
+                  <strong className="font-mono">Ministrante(s):</strong> {facilitatorNames}
                 </p>
-                <div className="space-y-1">
-                  <p>
-                    <strong className="font-mono">
-                      Requisitos de participação:
-                    </strong>{" "}
-                    {session.requirements}
-                  </p>
-                </div>
+                <p>
+                  <strong className="font-mono">Local:</strong> {workshop.location || 'Não informado'}
+                </p>
+                {workshop.requirements && (
+                  <div className="space-y-1">
+                    <p>
+                      <strong className="font-mono">
+                        Requisitos de participação:
+                      </strong>{" "}
+                      {workshop.requirements}
+                    </p>
+                  </div>
+                )}
               </div>
 
               <Separator />
@@ -181,16 +170,16 @@ export function MasterSessionCard({
               <div className="space-y-3">
                 <h3 className="font-bold text-lg flex items-center gap-2">
                   <Users className="w-5 h-5" />
-                  Jogadores Inscritos
+                  Participantes Inscritos
                 </h3>
 
-                {enrolledPlayers.length === 0 ? (
+                {enrolledParticipants.length === 0 ? (
                   <p className="text-sm text-muted-foreground italic">
-                    Nenhum jogador inscrito ainda.
+                    Nenhum participante inscrito ainda.
                   </p>
                 ) : (
                   <div className="space-y-3">
-                    {enrolledPlayers.map((enrollment) => (
+                    {enrolledParticipants.map((enrollment) => (
                       <Card key={enrollment.id} className="bg-muted/50 border-muted">
                         <CardContent className="p-4 space-y-2">
                           <div className="flex items-center justify-between">
@@ -243,9 +232,9 @@ export function MasterSessionCard({
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Cancelar sessão: {session.title}</DialogTitle>
+            <DialogTitle>Cancelar oficina: {workshop.title}</DialogTitle>
             <DialogDescription>
-              Esta ação não poderá ser desfeita. Informe o motivo do cancelamento para que os jogadores inscritos sejam notificados.
+              Esta ação não poderá ser desfeita. Informe o motivo do cancelamento para que os participantes inscritos sejam notificados.
             </DialogDescription>
           </DialogHeader>
 

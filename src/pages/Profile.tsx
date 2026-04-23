@@ -1,6 +1,8 @@
 import RootLayout from "@/components/layout/RootLayout";
 import { SessionCard, SessionSkeleton } from "@/components/custom/SessionCard";
 import { MasterSessionCard } from "@/components/custom/MasterSessionCard";
+import { WorkshopCard, WorkshopSkeleton } from "@/components/custom/WorkshopCard";
+import { MasterWorkshopCard } from "@/components/custom/MasterWorkshopCard";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
@@ -23,13 +25,15 @@ import {
 } from "@/schemas/user.schemas";
 
 import type { Session } from "@/services/sessionServices/session.types";
-import { getMyEmittedSessions, getMyEnrolledSessions } from "@/services/sessionServices/session.services";
+import { getMyEmittedSessions, getMyEnrolledSessions, getMyFacilitatedWorkshops } from "@/services/sessionServices/session.services";
 import { formatPhoneNumber } from "@/utils/formatPhoneNumber";
 
 const Profile = () => {
   const [expandedSessions, setExpandedSessions] = useState<string[]>([]);
   const [emittedSessions, setEmittedSessions] = useState<Session[]>([]);
+  const [emittedWorkshops, setEmittedWorkshops] = useState<Session[]>([]);
   const [enrolledSessions, setEnrolledSessions] = useState<Session[]>([]);
+  const [enrolledWorkshops, setEnrolledWorkshops] = useState<Session[]>([]);
   const [loadingEmitted, setLoadingEmitted] = useState(true);
   const [loadingEnrolled, setLoadingEnrolled] = useState(true);
   const [isUpdatingProfile, setIsUpdatingProfile] = useState(false);
@@ -123,45 +127,54 @@ const Profile = () => {
   useEffect(() => {
     let isMounted = true;
 
-    const fetchEmittedSessions = async () => {
+    const processResponse = (response: any, arrayKeys: string[]) => {
+      let data = [];
+      if (Array.isArray(response)) {
+        data = response;
+      } else {
+        for (const key of arrayKeys) {
+          if (response[key] && Array.isArray(response[key])) {
+            data = response[key];
+            break;
+          }
+        }
+        if (data.length === 0 && response.data) {
+          if (Array.isArray(response.data)) {
+            data = response.data;
+          } else {
+            for (const key of arrayKeys) {
+              if (response.data[key] && Array.isArray(response.data[key])) {
+                data = response.data[key];
+                break;
+              }
+            }
+          }
+        }
+      }
+
+      return data.map((item: Session) => {
+        const enrolledCount = item.enrollments?.length || 0;
+        const slots = item.maxPlayers - enrolledCount;
+        return {
+          ...item,
+          slots: slots >= 0 ? slots : 0
+        };
+      });
+    };
+
+    const fetchEmittedEvents = async () => {
       try {
-        const response = await getMyEmittedSessions();
-        console.log("Emitted Sessions - Full Response:", response);
+        const [sessionsResponse, workshopsResponse] = await Promise.all([
+          getMyEmittedSessions().catch(() => []),
+          getMyFacilitatedWorkshops().catch(() => [])
+        ]);
         
         if (isMounted) {
-          // Tenta diferentes formatos de resposta
-          let sessionsData = [];
-          if (Array.isArray(response)) {
-            sessionsData = response;
-          } else if (response.emittedSessions && Array.isArray(response.emittedSessions)) {
-            sessionsData = response.emittedSessions;
-          } else if (response.sessions && Array.isArray(response.sessions)) {
-            sessionsData = response.sessions;
-          } else if (response.data && Array.isArray(response.data)) {
-            sessionsData = response.data;
-          } else if (response.data?.sessions && Array.isArray(response.data.sessions)) {
-            sessionsData = response.data.sessions;
-          }
-          
-          // Calcula as vagas disponíveis para cada sessão
-          const sessionsWithSlots = sessionsData.map((session: Session) => {
-            const enrolledCount = session.enrollments?.length || 0;
-            const slots = session.maxPlayers - enrolledCount;
-            return {
-              ...session,
-              slots: slots >= 0 ? slots : 0
-            };
-          });
-          
-          console.log("Emitted Sessions - Processed Data:", sessionsWithSlots);
-          setEmittedSessions(sessionsWithSlots);
+          setEmittedSessions(processResponse(sessionsResponse, ['emittedSessions', 'sessions']));
+          setEmittedWorkshops(processResponse(workshopsResponse, ['workshops', 'emittedWorkshops']));
         }
       } catch (error) {
-        console.error("Erro ao buscar sessões emitidas:", error);
-        
-        if (isMounted) {
-          setEmittedSessions([]);
-        }
+        console.error("Erro ao buscar eventos emitidos:", error);
       } finally {
         if (isMounted) {
           setLoadingEmitted(false);
@@ -169,13 +182,11 @@ const Profile = () => {
       }
     };
 
-    const fetchEnrolledSessions = async () => {
+    const fetchEnrolledEvents = async () => {
       try {
         const response = await getMyEnrolledSessions();
-        console.log("Enrolled Sessions - Full Response:", response);
         
         if (isMounted) {
-          // Tenta diferentes formatos de resposta
           let enrollmentsData = [];
           if (Array.isArray(response)) {
             enrollmentsData = response;
@@ -187,8 +198,6 @@ const Profile = () => {
             enrollmentsData = response.data;
           }
           
-          // Extrai as sessions de dentro dos enrollments
-          // O backend retorna SessionEnrollment[] que tem { session: Session }
           const sessionsData = enrollmentsData
             .map((item: { session?: Session } | Session) => {
               if ('session' in item && item.session) {
@@ -198,10 +207,7 @@ const Profile = () => {
             })
             .filter(Boolean);
           
-          console.log("Sessions extraídas dos enrollments:", sessionsData);
-          
-          // Calcula as vagas disponíveis para cada sessão
-          const sessionsWithSlots = sessionsData.map((session: Session) => {
+          const allEvents = sessionsData.map((session: Session) => {
             const enrolledCount = session.enrollments?.length || 0;
             const slots = session.maxPlayers - enrolledCount;
             return {
@@ -210,14 +216,14 @@ const Profile = () => {
             };
           });
           
-          console.log("Enrolled Sessions - Processed Data:", sessionsWithSlots);
-          setEnrolledSessions(sessionsWithSlots);
+          setEnrolledSessions(allEvents.filter((e: Session) => e.type !== 'OFICINA'));
+          setEnrolledWorkshops(allEvents.filter((e: Session) => e.type === 'OFICINA'));
         }
       } catch (error) {
-        console.error("Erro ao buscar sessões inscritas:", error);
-        
+        console.error("Erro ao buscar eventos inscritos:", error);
         if (isMounted) {
           setEnrolledSessions([]);
+          setEnrolledWorkshops([]);
         }
       } finally {
         if (isMounted) {
@@ -226,8 +232,8 @@ const Profile = () => {
       }
     };
 
-    fetchEmittedSessions();
-    fetchEnrolledSessions();
+    fetchEmittedEvents();
+    fetchEnrolledEvents();
 
     return () => {
       isMounted = false;
@@ -235,9 +241,7 @@ const Profile = () => {
   }, []);
 
   const handleEnrollmentCanceled = () => {
-    // Optionally trigger a re-fetch or filter out the state. We'll reload the state by fetching again since there are many dependencies:
     setLoadingEnrolled(true);
-    // Refresh page hack or state
     window.location.reload();
   };
 
@@ -245,67 +249,138 @@ const Profile = () => {
     <RootLayout>
       <div className="container mx-auto px-4 max-w-4xl">
         <h1 className="text-4xl font-bold mb-8 text-center">
-          Minhas Mesas
+          Meu Perfil
         </h1>
 
         <Tabs defaultValue="emitted" className="w-full">
           <TabsList className="grid w-full grid-cols-1 sm:grid-cols-3">
-            <TabsTrigger value="emitted">Mesas Emitidas</TabsTrigger>
-            <TabsTrigger value="enrolled">Mesas Inscritas</TabsTrigger>
+            <TabsTrigger value="emitted">Eventos Emitidos</TabsTrigger>
+            <TabsTrigger value="enrolled">Eventos Inscritos</TabsTrigger>
             <TabsTrigger value="settings">Configurações</TabsTrigger>
           </TabsList>
 
           <TabsContent value="emitted" className="mt-6">
-            {loadingEmitted && <SessionSkeleton />}
+            <Tabs defaultValue="emitted-sessions" className="w-full">
+              <TabsList className="grid w-full grid-cols-2">
+                <TabsTrigger value="emitted-sessions">Mesas de RPG</TabsTrigger>
+                <TabsTrigger value="emitted-workshops">Oficinas</TabsTrigger>
+              </TabsList>
+              
+              <TabsContent value="emitted-sessions" className="mt-6">
+                {loadingEmitted && <SessionSkeleton />}
 
-            {!loadingEmitted && emittedSessions.length === 0 && (
-              <p className="text-muted-foreground text-center">
-                Você ainda não criou nenhuma mesa.
-              </p>
-            )}
+                {!loadingEmitted && emittedSessions.length === 0 && (
+                  <p className="text-muted-foreground text-center">
+                    Você ainda não criou nenhuma mesa.
+                  </p>
+                )}
 
-            {!loadingEmitted && emittedSessions.length > 0 && (
-              <div>
-                {emittedSessions.map((session) => (
-                  <MasterSessionCard
-                    key={session.id || `session-${Math.random()}`}
-                    session={session}
-                    isExpanded={
-                      session.id ? expandedSessions.includes(session.id) : false
-                    }
-                    onToggleExpand={toggleExpand}
-                    onCancelSuccess={() => window.location.reload()}
-                  />
-                ))}
-              </div>
-            )}
+                {!loadingEmitted && emittedSessions.length > 0 && (
+                  <div>
+                    {emittedSessions.map((session) => (
+                      <MasterSessionCard
+                        key={session.id || `session-${Math.random()}`}
+                        session={session}
+                        isExpanded={
+                          session.id ? expandedSessions.includes(session.id) : false
+                        }
+                        onToggleExpand={toggleExpand}
+                        onCancelSuccess={() => window.location.reload()}
+                      />
+                    ))}
+                  </div>
+                )}
+              </TabsContent>
+
+              <TabsContent value="emitted-workshops" className="mt-6">
+                {loadingEmitted && <WorkshopSkeleton />}
+
+                {!loadingEmitted && emittedWorkshops.length === 0 && (
+                  <p className="text-muted-foreground text-center">
+                    Você ainda não criou nenhuma oficina.
+                  </p>
+                )}
+
+                {!loadingEmitted && emittedWorkshops.length > 0 && (
+                  <div>
+                    {emittedWorkshops.map((workshop) => (
+                      <MasterWorkshopCard
+                        key={workshop.id || `workshop-${Math.random()}`}
+                        workshop={workshop}
+                        isExpanded={
+                          workshop.id ? expandedSessions.includes(workshop.id) : false
+                        }
+                        onToggleExpand={toggleExpand}
+                        onCancelSuccess={() => window.location.reload()}
+                      />
+                    ))}
+                  </div>
+                )}
+              </TabsContent>
+            </Tabs>
           </TabsContent>
 
           <TabsContent value="enrolled" className="mt-6">
-            {loadingEnrolled && <SessionSkeleton />}
+            <Tabs defaultValue="enrolled-sessions" className="w-full">
+              <TabsList className="grid w-full grid-cols-2">
+                <TabsTrigger value="enrolled-sessions">Mesas de RPG</TabsTrigger>
+                <TabsTrigger value="enrolled-workshops">Oficinas</TabsTrigger>
+              </TabsList>
 
-            {!loadingEnrolled && enrolledSessions.length === 0 && (
-              <p className="text-muted-foreground text-center">
-                Você ainda não está inscrito em nenhuma mesa.
-              </p>
-            )}
+              <TabsContent value="enrolled-sessions" className="mt-6">
+                {loadingEnrolled && <SessionSkeleton />}
 
-            {!loadingEnrolled && enrolledSessions.length > 0 && (
-              <div>
-                {enrolledSessions.map((session) => (
-                  <SessionCard
-                    key={session.id || `session-${Math.random()}`}
-                    session={session}
-                    isExpanded={
-                      session.id ? expandedSessions.includes(session.id) : false
-                    }
-                    onToggleExpand={toggleExpand}
-                    variant="enrolled"
-                    onCancelSuccess={handleEnrollmentCanceled}
-                  />
-                ))}
-              </div>
-            )}
+                {!loadingEnrolled && enrolledSessions.length === 0 && (
+                  <p className="text-muted-foreground text-center">
+                    Você ainda não está inscrito em nenhuma mesa.
+                  </p>
+                )}
+
+                {!loadingEnrolled && enrolledSessions.length > 0 && (
+                  <div>
+                    {enrolledSessions.map((session) => (
+                      <SessionCard
+                        key={session.id || `session-${Math.random()}`}
+                        session={session}
+                        isExpanded={
+                          session.id ? expandedSessions.includes(session.id) : false
+                        }
+                        onToggleExpand={toggleExpand}
+                        variant="enrolled"
+                        onCancelSuccess={handleEnrollmentCanceled}
+                      />
+                    ))}
+                  </div>
+                )}
+              </TabsContent>
+
+              <TabsContent value="enrolled-workshops" className="mt-6">
+                {loadingEnrolled && <WorkshopSkeleton />}
+
+                {!loadingEnrolled && enrolledWorkshops.length === 0 && (
+                  <p className="text-muted-foreground text-center">
+                    Você ainda não está inscrito em nenhuma oficina.
+                  </p>
+                )}
+
+                {!loadingEnrolled && enrolledWorkshops.length > 0 && (
+                  <div>
+                    {enrolledWorkshops.map((workshop) => (
+                      <WorkshopCard
+                        key={workshop.id || `workshop-${Math.random()}`}
+                        workshop={workshop}
+                        isExpanded={
+                          workshop.id ? expandedSessions.includes(workshop.id) : false
+                        }
+                        onToggleExpand={toggleExpand}
+                        variant="enrolled"
+                        onCancelSuccess={handleEnrollmentCanceled}
+                      />
+                    ))}
+                  </div>
+                )}
+              </TabsContent>
+            </Tabs>
           </TabsContent>
 
           <TabsContent value="settings" className="mt-6">

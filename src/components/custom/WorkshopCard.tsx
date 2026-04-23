@@ -4,17 +4,16 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { Session } from "@/services/sessionServices/session.types";
-import { enrollInSession, cancelEnrollment } from "@/services/sessionServices/session.services";
+import { enrollInWorkshop, cancelWorkshopEnrollment } from "@/services/sessionServices/session.services";
 import { toast } from "sonner";
 import { useState } from "react";
 import { formatDateBR } from "@/utils/formatDate";
 
 
-export function SessionSkeleton() {
+export function WorkshopSkeleton() {
   return (
     <Card className="mb-6 bg-background border-1 border-accent">
       <CardHeader className="flex flex-row items-start gap-4 pb-3 font-pixelsans">
-        <Skeleton className="w-16 h-16 rounded animate-pulse" />
         <div className="space-y-1 flex-1">
           <Skeleton className="h-8 w-3/4 animate-pulse" />
           <Skeleton className="h-4 w-1/2 animate-pulse" />
@@ -32,57 +31,45 @@ export function SessionSkeleton() {
   );
 }
 
-interface SessionCardProps {
-  session: Session;
+interface WorkshopCardProps {
+  workshop: Session;
   isExpanded: boolean;
-  onToggleExpand: (sessionId: string) => void;
+  onToggleExpand: (workshopId: string) => void;
   onEnrollSuccess?: () => void;
   onCancelSuccess?: () => void;
   variant?: 'default' | 'enrolled';
 }
 
-const systemLogos: Record<string, string> = {
-  'D&D 5e': '/icons/d&d-logo.svg',
-  'Vampiro: A Máscara': '/icons/vampiro-logo.png',
-  'Kaos em Nova Patos': '/logos/kaos.png',
-  'Ordem Paranormal': '/icons/ordem-paranormal-logo.svg',
-  'Tormenta20': '/icons/t20-logo.png',
-  'Pathfinder 2e': '/icons/pathfinder-logo.png',
-  'Call of Cthulhu': '/icons/coc-logo.png',
-  'Outros': '/icons/logo.png'
-};
-
-export function SessionCard({
-  session,
+export function WorkshopCard({
+  workshop,
   isExpanded,
   onToggleExpand,
   onEnrollSuccess,
   onCancelSuccess,
   variant = 'default',
-}: SessionCardProps) {
+}: WorkshopCardProps) {
   const [enrolling, setEnrolling] = useState(false);
   const [canceling, setCanceling] = useState(false);
 
-  const isEnrollmentClosed = session.approvedDate 
-    ? new Date().setHours(0,0,0,0) >= new Date(session.approvedDate).setHours(0,0,0,0)
+  const isEnrollmentClosed = workshop.approvedDate 
+    ? new Date().setHours(0,0,0,0) >= new Date(workshop.approvedDate).setHours(0,0,0,0)
     : false;
 
-  const isCancellationWindowClosed = session.approvedDate
-    ? (new Date(session.approvedDate).getTime() - Date.now()) / (1000 * 60 * 60) < 24
+  const isCancellationWindowClosed = workshop.approvedDate
+    ? (new Date(workshop.approvedDate).getTime() - Date.now()) / (1000 * 60 * 60) < 24
     : false;
 
   const handleEnroll = async () => {
-    if (!session.id) {
-      toast.error("ID da sessão não encontrado");
+    if (!workshop.id) {
+      toast.error("ID da oficina não encontrado");
       return;
     }
 
     try {
       setEnrolling(true);
-      await enrollInSession(session.id);
+      await enrollInWorkshop(workshop.id);
       toast.success("Inscrição realizada com sucesso!");
       
-      // Chama callback para atualizar a lista
       if (onEnrollSuccess) {
         onEnrollSuccess();
       }
@@ -102,14 +89,14 @@ export function SessionCard({
   };
 
   const handleCancelEnrollment = async () => {
-    if (!session.id) {
-      toast.error("ID da sessão não encontrado");
+    if (!workshop.id) {
+      toast.error("ID da oficina não encontrado");
       return;
     }
 
     try {
       setCanceling(true);
-      await cancelEnrollment(session.id);
+      await cancelWorkshopEnrollment(workshop.id);
       toast.success("Inscrição cancelada com sucesso!");
       
       if (onCancelSuccess) {
@@ -130,37 +117,30 @@ export function SessionCard({
     }
   };
 
-  const systemLogo = systemLogos[session.system || 'Outros'] || systemLogos['Outros'];
+  const facilitatorNames = workshop.facilitators
+    ? workshop.facilitators.map(f => f.user.name).join(', ')
+    : 'Não informado';
 
   return (
     <Card className="mb-6 bg-background border-1 border-accent">
       <CardHeader className="flex flex-row items-start gap-4 pb-3 font-pixelsans text-foreground">
-      <img
-        src={systemLogo}
-        alt={session.system}
-        className="w-16 h-16 object-contain"
-        onError={(e) => {
-          e.currentTarget.src = systemLogos['Outros'];
-        }}
-      />
-
         <div className="space-y-1">
-          <CardTitle className="text-2xl">{session.title}</CardTitle>
+          <CardTitle className="text-2xl">{workshop.title}</CardTitle>
           <p className="text-sm text-muted-foreground font-prompt">
-            {session.system} | {session.approvedDate ? formatDateBR(session.approvedDate) : (session.createdAt && formatDateBR(session.createdAt))} |{" "}
-            {session.period}
+            {workshop.approvedDate ? formatDateBR(workshop.approvedDate) : (workshop.createdAt && formatDateBR(workshop.createdAt))} |{" "}
+            {workshop.period}
           </p>
         </div>
       </CardHeader>
 
       <CardContent className="space-y-4">
-        <p className="leading-relaxed text-foreground">{session.description}</p>
+        <p className="leading-relaxed text-foreground">{workshop.description}</p>
 
         <div className="flex justify-between items-center">
           <Button
             variant="outline"
             size="sm"
-            onClick={() => session.id && onToggleExpand(session.id)}
+            onClick={() => workshop.id && onToggleExpand(workshop.id)}
             className="text text-accent-foreground font-semibold cursor-pointer py-2 uppercase w-full"
           >
             <span className="text-sm">Saiba</span>
@@ -174,41 +154,43 @@ export function SessionCard({
 
             <div className="space-y-3 text-foreground">
               <p>
-                <strong className="font-mono">Mestre:</strong> {session.master?.name || 'Não informado'}
+                <strong className="font-mono">Ministrante(s):</strong> {facilitatorNames}
               </p>
               <p>
-                <strong className="font-mono">Local:</strong> {session.location || 'Não informado'}
+                <strong className="font-mono">Local:</strong> {workshop.location || 'Não informado'}
               </p>
               <p>
                 <strong className="font-mono">Vagas disponíveis:</strong>
                 <Badge
-                  variant={(session.slots || 0) > 0 ? "secondary" : "destructive"}
+                  variant={(workshop.slots || 0) > 0 ? "secondary" : "destructive"}
                   className="ml-2"
                 >
-                  {session.slots || 0}
+                  {workshop.slots || 0}
                 </Badge>
               </p>
-              <div className="space-y-1">
-                <p>
-                  <strong className="font-mono">
-                    Requisitos de participação:
-                  </strong>{" "}
-                  {session.requirements}
-                </p>
-              </div>
+              {workshop.requirements && (
+                <div className="space-y-1">
+                  <p>
+                    <strong className="font-mono">
+                      Requisitos de participação:
+                    </strong>{" "}
+                    {workshop.requirements}
+                  </p>
+                </div>
+              )}
             </div>
 
             {variant === 'default' ? (
               <Button
                 className="w-full mt-2 uppercase"
-                disabled={(session.slots || 0) === 0 || enrolling || isEnrollmentClosed}
+                disabled={(workshop.slots || 0) === 0 || enrolling || isEnrollmentClosed}
                 onClick={handleEnroll}
               >
                 {enrolling 
                   ? "Inscrevendo..." 
                   : isEnrollmentClosed
                     ? "Inscrições Encerradas"
-                    : (session.slots || 0) > 0 
+                    : (workshop.slots || 0) > 0 
                       ? "Inscreva-se" 
                       : "Sem Vagas Disponíveis"
                 }

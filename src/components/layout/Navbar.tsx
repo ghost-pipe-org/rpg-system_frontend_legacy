@@ -50,6 +50,10 @@ export default function Navbar() {
       linkName: ROUTE_LABELS[ROUTES.CREATE_SESSIONS],
     },
     {
+      endpoint: ROUTES.CREATE_WORKSHOP,
+      linkName: ROUTE_LABELS[ROUTES.CREATE_WORKSHOP],
+    },
+    {
       endpoint: ROUTES.PROFILE,
       linkName: ROUTE_LABELS[ROUTES.PROFILE],
     },
