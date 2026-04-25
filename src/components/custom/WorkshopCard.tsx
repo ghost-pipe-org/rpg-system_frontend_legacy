@@ -3,7 +3,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ScrollText } from "lucide-react";
+import { ScrollText, CheckCircle2 } from "lucide-react";
 import type { Session } from "@/services/sessionServices/session.types";
 import { enrollInWorkshop, cancelWorkshopEnrollment } from "@/services/sessionServices/session.services";
 import { toast } from "sonner";
@@ -51,6 +51,7 @@ export function WorkshopCard({
 }: WorkshopCardProps) {
   const [enrolling, setEnrolling] = useState(false);
   const [canceling, setCanceling] = useState(false);
+  const [justEnrolled, setJustEnrolled] = useState(false);
 
   const isEnrollmentClosed = workshop.approvedDate 
     ? new Date().setHours(0,0,0,0) >= new Date(workshop.approvedDate).setHours(0,0,0,0)
@@ -70,6 +71,8 @@ export function WorkshopCard({
       setEnrolling(true);
       await enrollInWorkshop(workshop.id);
       toast.success("Inscrição realizada com sucesso!");
+      setJustEnrolled(true);
+      setTimeout(() => setJustEnrolled(false), 3000);
       
       if (onEnrollSuccess) {
         onEnrollSuccess();
@@ -83,6 +86,10 @@ export function WorkshopCard({
         errorMessage = axiosError.response?.data?.message || errorMessage;
       }
       
+      if (errorMessage.toLowerCase().includes("token") || errorMessage.toLowerCase().includes("unauthorized")) {
+        errorMessage = "Faça login para se inscrever neste evento.";
+      }
+
       toast.error(errorMessage);
     } finally {
       setEnrolling(false);
@@ -196,17 +203,19 @@ export function WorkshopCard({
 
             {variant === 'default' ? (
               <Button
-                className="w-full mt-2 uppercase"
-                disabled={(workshop.slots || 0) === 0 || enrolling || isEnrollmentClosed}
+                className={`w-full mt-2 uppercase transition-all duration-300 ${justEnrolled ? 'bg-green-600 hover:bg-green-600' : ''}`}
+                disabled={(workshop.slots || 0) === 0 || enrolling || isEnrollmentClosed || justEnrolled}
                 onClick={handleEnroll}
               >
                 {enrolling 
                   ? "Inscrevendo..." 
-                  : isEnrollmentClosed
-                    ? "Inscrições Encerradas"
-                    : (workshop.slots || 0) > 0 
-                      ? "Inscreva-se" 
-                      : "Sem Vagas Disponíveis"
+                  : justEnrolled
+                    ? <><CheckCircle2 className="w-4 h-4 mr-1" /> Inscrito!</>
+                    : isEnrollmentClosed
+                      ? "Inscrições Encerradas"
+                      : (workshop.slots || 0) > 0 
+                        ? "Inscreva-se" 
+                        : "Sem Vagas Disponíveis"
                 }
               </Button>
             ) : (

@@ -1,7 +1,6 @@
 import Navbar from "./Navbar";
 import Footer from "./Footer";
 import type { ReactNode } from "react";
-import { Toaster } from "sonner";
 import bgArt from "../../assets/images/bg_art.png";
 
 interface RootLayoutProps {
@@ -18,7 +17,6 @@ export default function RootLayout({ children }: RootLayoutProps) {
         backgroundBlendMode: "multiply",
       }}
     >
-      <Toaster className="text-foreground" />
       <Navbar />
       <main className="flex-1 flex flex-col w-full items-center py-20">
         {children}

@@ -2,7 +2,6 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
-import { Toaster } from "sonner";
 import {
   Form,
   FormControl,
@@ -24,6 +23,7 @@ import { useAuth } from "../context/AuthContext";
 import { ROUTES } from "../routes/routes";
 import { formatPhoneNumber } from "../utils/formatPhoneNumber";
 import logo from "../assets/icons/logo.png";
+import bgArt from "../assets/images/bg_art.png";
 
 export default function SingUp() {
   const [isLoading, setIsLoading] = useState(false);
@@ -87,13 +87,19 @@ export default function SingUp() {
   }
 
   return (
-    <div className="min-h-screen bg-background flex items-stretch">
-      <Toaster className="text-foreground" />
+    <div 
+      className="min-h-screen flex items-stretch bg-gradient-to-b from-background to-primary bg-fixed bg-cover bg-center"
+      style={{
+        backgroundImage: `radial-gradient(var(--chart-1), var(--chart-4)), url(${bgArt})`,
+        backgroundBlendMode: "multiply",
+      }}
+    >
       {/* Painel esquerdo — branding */}
       <div
-        className="hidden lg:flex flex-col items-center justify-center flex-1 relative overflow-hidden"
+        className="hidden lg:flex flex-col items-center justify-center flex-1 relative overflow-hidden bg-background/80"
         style={{
-          background: 'linear-gradient(135deg, var(--secondary) 0%, var(--background) 60%, var(--chart-4) 100%)',
+          backdropFilter: "blur(12px)",
+          borderRight: "1px solid rgba(255,255,255,0.05)"
         }}
       >
         <div className="absolute top-20 left-10 w-64 h-64 rounded-full opacity-20" style={{ background: 'radial-gradient(circle, var(--primary), transparent)' }} />

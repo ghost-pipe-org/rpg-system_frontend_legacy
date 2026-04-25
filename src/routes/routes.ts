@@ -28,7 +28,7 @@ export const routes = [
   {
     path: '/',
     element: Home,
-    requireAuth: true,
+    requireAuth: false,
     title: 'Home'
   },
   {
@@ -46,7 +46,7 @@ export const routes = [
   {
     path: '/sessions',
     element: Sessions,
-    requireAuth: true,
+    requireAuth: false,
     title: 'Sessões de RPG'
   },
   {

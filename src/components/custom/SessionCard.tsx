@@ -98,6 +98,10 @@ export function SessionCard({
         errorMessage = axiosError.response?.data?.message || errorMessage;
       }
       
+      if (errorMessage.toLowerCase().includes("token") || errorMessage.toLowerCase().includes("unauthorized")) {
+        errorMessage = "Faça login para se inscrever neste evento.";
+      }
+
       toast.error(errorMessage);
     } finally {
       setEnrolling(false);
