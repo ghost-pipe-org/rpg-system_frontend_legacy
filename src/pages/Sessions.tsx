@@ -5,6 +5,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useState, useEffect } from "react";
 import type { Session } from "@/services/sessionServices/session.types";
 import { getAprovedSessions, getApprovedWorkshops } from "@/services/sessionServices/session.services";
+import { Info, Swords, ScrollText, CalendarX, Clock, Ban, AlertCircle } from "lucide-react";
+import { EventBanner } from "@/components/custom/EventBanner"; // 🚀 REMOVER APÓS O EVENTO
 
 interface AnimatedCardProps {
   index: number;
@@ -21,6 +23,115 @@ function AnimatedCard({ index, children }: AnimatedCardProps) {
       }}
     >
       {children}
+    </div>
+  );
+}
+
+const sessionRules = [
+  {
+    icon: Swords,
+    title: "1 mesa por dia",
+    desc: "Você só pode se inscrever em uma Mesa de RPG no mesmo dia.",
+  },
+  {
+    icon: Clock,
+    title: "Sem conflito de período",
+    desc: "Não é possível se inscrever em dois eventos no mesmo período (Manhã, Tarde ou Noite) do mesmo dia.",
+  },
+  {
+    icon: CalendarX,
+    title: "Inscrições encerram no dia",
+    desc: "As inscrições ficam abertas até o dia do evento. Após isso, não é mais possível se inscrever.",
+  },
+  {
+    icon: Ban,
+    title: "Cancelamento até 24h antes",
+    desc: "Você pode cancelar sua inscrição até 24 horas antes do início do evento.",
+  },
+];
+
+const workshopRules = [
+  {
+    icon: ScrollText,
+    title: "Oficinas independentes",
+    desc: "Oficinas não bloqueiam inscrições em Mesas de RPG — a restrição é apenas de período (horário) no mesmo dia.",
+  },
+  {
+    icon: Clock,
+    title: "Sem conflito de período",
+    desc: "Não é possível se inscrever em dois eventos (mesa ou oficina) no mesmo período do mesmo dia.",
+  },
+  {
+    icon: CalendarX,
+    title: "Inscrições encerram no dia",
+    desc: "As inscrições ficam abertas até o dia do evento.",
+  },
+  {
+    icon: Ban,
+    title: "Cancelamento até 24h antes",
+    desc: "Você pode cancelar sua inscrição até 24 horas antes do início da oficina.",
+  },
+];
+
+function RulesPanel({ rules }: { rules: typeof sessionRules }) {
+  const [open, setOpen] = useState(false);
+
+  return (
+    <div
+      className="mb-6 rounded-xl border overflow-hidden"
+      style={{
+        borderColor: 'rgba(113, 86, 247, 0.25)',
+        background: 'rgba(113, 86, 247, 0.05)',
+      }}
+    >
+      <button
+        onClick={() => setOpen(o => !o)}
+        className="w-full flex items-center justify-between px-4 py-3 text-left group cursor-pointer"
+      >
+        <div className="flex items-center gap-2 text-sm font-semibold text-primary">
+          <Info size={15} />
+          Regras de inscrição
+        </div>
+        <span
+          className="text-muted-foreground text-xs transition-transform duration-300"
+          style={{ display: 'inline-block', transform: open ? 'rotate(180deg)' : 'rotate(0deg)' }}
+        >
+          ▾
+        </span>
+      </button>
+
+      <div
+        style={{
+          maxHeight: open ? '600px' : '0px',
+          overflow: 'hidden',
+          transition: 'max-height 0.35s cubic-bezier(0.16, 1, 0.3, 1)',
+        }}
+      >
+        <div className="px-4 pb-4 grid grid-cols-1 sm:grid-cols-2 gap-3">
+          {rules.map((rule) => (
+            <div
+              key={rule.title}
+              className="flex items-start gap-3 p-3 rounded-lg"
+              style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)' }}
+            >
+              <div className="mt-0.5 shrink-0 text-primary">
+                <rule.icon size={16} />
+              </div>
+              <div>
+                <p className="text-sm font-semibold text-foreground">{rule.title}</p>
+                <p className="text-xs text-muted-foreground mt-0.5 leading-relaxed">{rule.desc}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+        <div
+          className="px-4 pb-3 pt-2 flex items-center gap-2 text-xs text-muted-foreground border-t"
+          style={{ borderColor: 'rgba(255,255,255,0.06)' }}
+        >
+          <AlertCircle size={12} className="text-primary shrink-0" />
+          Inscrições são pessoais e intransferíveis. Respeite os outros participantes.
+        </div>
+      </div>
     </div>
   );
 }
@@ -50,6 +161,8 @@ const Sessions = () => {
     );
   };
 
+  const periodOrder: Record<string, number> = { MANHA: 0, TARDE: 1, NOITE: 2 };
+
   const processResponse = (response: any) => {
     let data = [];
     if (Array.isArray(response)) {
@@ -59,15 +172,18 @@ const Sessions = () => {
     } else if (response.data && Array.isArray(response.data)) {
       data = response.data;
     }
-    
-    return data.map((item: Session) => {
-      const enrolledCount = item.enrollments?.length || 0;
-      const slots = item.maxPlayers - enrolledCount;
-      return {
-        ...item,
-        slots: slots >= 0 ? slots : 0
-      };
-    });
+
+    return data
+      .map((item: Session) => {
+        const enrolledCount = item.enrollments?.length || 0;
+        const slots = item.maxPlayers - enrolledCount;
+        return { ...item, slots: slots >= 0 ? slots : 0 };
+      })
+      .sort((a: Session, b: Session) => {
+        const pa = periodOrder[a.period ?? ''] ?? 99;
+        const pb = periodOrder[b.period ?? ''] ?? 99;
+        return pa - pb;
+      });
   };
 
   const fetchSessions = async () => {
@@ -122,6 +238,9 @@ const Sessions = () => {
           Eventos Disponíveis
         </h1>
 
+        {/* 🚀 REMOVER APÓS O EVENTO — apagar linha abaixo e o import no topo */}
+        <EventBanner />
+
         <Tabs defaultValue="sessions" onValueChange={handleTabChange} className="w-full">
           <TabsList className="grid w-full grid-cols-2 mb-8">
             <TabsTrigger value="sessions">Mesas de RPG</TabsTrigger>
@@ -129,6 +248,8 @@ const Sessions = () => {
           </TabsList>
 
           <TabsContent value="sessions" className="space-y-4">
+            <RulesPanel rules={sessionRules} />
+
             {loadingSessions && <SessionSkeleton />}
 
             {!loadingSessions && sessions.length === 0 && (
@@ -150,12 +271,14 @@ const Sessions = () => {
                       onEnrollSuccess={handleEnrollSuccess}
                     />
                   </AnimatedCard>
-                ))}     
+                ))}
               </div>
             )}
           </TabsContent>
 
           <TabsContent value="workshops" className="space-y-4">
+            <RulesPanel rules={workshopRules} />
+
             {loadingWorkshops && <WorkshopSkeleton />}
 
             {!loadingWorkshops && workshopsFetched && workshops.length === 0 && (
@@ -177,7 +300,7 @@ const Sessions = () => {
                       onEnrollSuccess={handleWorkshopEnrollSuccess}
                     />
                   </AnimatedCard>
-                ))}     
+                ))}
               </div>
             )}
           </TabsContent>
@@ -188,4 +311,3 @@ const Sessions = () => {
 };
 
 export default Sessions;
-

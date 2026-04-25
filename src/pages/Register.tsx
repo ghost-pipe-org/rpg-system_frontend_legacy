@@ -2,6 +2,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
+import { Toaster } from "sonner";
 import {
   Form,
   FormControl,
@@ -87,6 +88,7 @@ export default function SingUp() {
 
   return (
     <div className="min-h-screen bg-background flex items-stretch">
+      <Toaster className="text-foreground" />
       {/* Painel esquerdo — branding */}
       <div
         className="hidden lg:flex flex-col items-center justify-center flex-1 relative overflow-hidden"

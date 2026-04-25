@@ -265,10 +265,10 @@ const Profile = () => {
         </h1>
 
         <Tabs defaultValue="emitted" className="w-full">
-          <TabsList className="grid w-full grid-cols-1 sm:grid-cols-3">
-            <TabsTrigger value="emitted">Eventos Emitidos</TabsTrigger>
-            <TabsTrigger value="enrolled">Eventos Inscritos</TabsTrigger>
-            <TabsTrigger value="settings">Configurações</TabsTrigger>
+          <TabsList className="grid w-full grid-cols-3">
+            <TabsTrigger value="emitted">Emitidos</TabsTrigger>
+            <TabsTrigger value="enrolled">Inscritos</TabsTrigger>
+            <TabsTrigger value="settings">Config.</TabsTrigger>
           </TabsList>
 
           <TabsContent value="emitted" className="mt-6">
@@ -399,159 +399,170 @@ const Profile = () => {
             </Tabs>
           </TabsContent>
 
-          <TabsContent value="settings" className="mt-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Configurações de Perfil</CardTitle>
-                <CardDescription>
-                  Atualize suas informações pessoais visíveis para mestres e jogadores.
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <Form {...profileForm}>
-                  <form onSubmit={profileForm.handleSubmit(onSubmitProfileOptions)} className="space-y-4">
-                    <FormField
-                      control={profileForm.control}
-                      name="name"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Nome Completo</FormLabel>
-                          <FormControl>
-                            <Input placeholder="Seu nome" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={profileForm.control}
-                      name="phoneNumber"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Telefone (com DDD)</FormLabel>
-                          <FormControl>
-                            <Input 
-                              placeholder="(00) 00000-0000" 
-                              {...field} 
-                              onChange={(e) => {
-                                const formatted = formatPhoneNumber(e.target.value);
-                                field.onChange(formatted);
-                              }}
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <Button type="submit" disabled={isUpdatingProfile} className="w-full sm:w-auto uppercase">
-                      {isUpdatingProfile ? <><Loader2 className="animate-spin" /> Salvando...</> : "Salvar Alterações"}
-                    </Button>
-                  </form>
-                </Form>
-              </CardContent>
-            </Card>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+          <TabsContent value="settings" className="mt-6 space-y-6">
+            <div
+              className="animate-card-in"
+              style={{ animationDelay: '0ms', animationFillMode: 'both' }}
+            >
               <Card>
                 <CardHeader>
-                  <CardTitle>Alterar Email</CardTitle>
+                  <CardTitle>Configurações de Perfil</CardTitle>
                   <CardDescription>
-                    Mude o endereço de email de sua conta. Requer a senha atual.
+                    Atualize suas informações pessoais visíveis para mestres e jogadores.
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <Form {...emailForm}>
-                    <form onSubmit={emailForm.handleSubmit(onSubmitEmailOptions)} className="space-y-4">
+                  <Form {...profileForm}>
+                    <form onSubmit={profileForm.handleSubmit(onSubmitProfileOptions)} className="space-y-4">
                       <FormField
-                        control={emailForm.control}
-                        name="newEmail"
+                        control={profileForm.control}
+                        name="name"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Novo Email</FormLabel>
+                            <FormLabel>Nome Completo</FormLabel>
                             <FormControl>
-                              <Input type="email" placeholder="Seu novo email" {...field} />
+                              <Input placeholder="Seu nome" {...field} />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
                         )}
                       />
                       <FormField
-                        control={emailForm.control}
-                        name="currentPassword"
+                        control={profileForm.control}
+                        name="phoneNumber"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Senha Atual</FormLabel>
+                            <FormLabel>Telefone (com DDD)</FormLabel>
                             <FormControl>
-                              <Input type="password" placeholder="Sua senha atual" {...field} />
+                              <Input
+                                placeholder="(00) 00000-0000"
+                                {...field}
+                                onChange={(e) => {
+                                  const formatted = formatPhoneNumber(e.target.value);
+                                  field.onChange(formatted);
+                                }}
+                              />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
                         )}
                       />
-                      <Button type="submit" disabled={isUpdatingEmail} className="w-full uppercase" variant="outline">
-                        {isUpdatingEmail ? <><Loader2 className="animate-spin" /> Salvando...</> : "Atualizar Email"}
+                      <Button type="submit" disabled={isUpdatingProfile} className="w-full sm:w-auto uppercase">
+                        {isUpdatingProfile ? <><Loader2 className="animate-spin" /> Salvando...</> : "Salvar Alterações"}
                       </Button>
                     </form>
                   </Form>
                 </CardContent>
               </Card>
+            </div>
 
-              <Card>
-                <CardHeader>
-                  <CardTitle>Alterar Senha</CardTitle>
-                  <CardDescription>
-                    Recadastre a sua palavra passe do sistema.
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <Form {...passwordForm}>
-                    <form onSubmit={passwordForm.handleSubmit(onSubmitPasswordOptions)} className="space-y-4">
-                      <FormField
-                        control={passwordForm.control}
-                        name="currentPassword"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Senha Atual</FormLabel>
-                            <FormControl>
-                              <Input type="password" placeholder="Sua senha atual" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <FormField
-                        control={passwordForm.control}
-                        name="newPassword"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Nova Senha</FormLabel>
-                            <FormControl>
-                              <Input type="password" placeholder="Nova senha" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <FormField
-                        control={passwordForm.control}
-                        name="confirmNewPassword"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Confirmar Nova Senha</FormLabel>
-                            <FormControl>
-                              <Input type="password" placeholder="Confirme a nova senha" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <Button type="submit" disabled={isUpdatingPassword} className="w-full uppercase" variant="outline">
-                        {isUpdatingPassword ? <><Loader2 className="animate-spin" /> Salvando...</> : "Atualizar Senha"}
-                      </Button>
-                    </form>
-                  </Form>
-                </CardContent>
-              </Card>
+            <div
+              className="grid grid-cols-1 md:grid-cols-2 gap-6"
+            >
+              <div className="animate-card-in" style={{ animationDelay: '80ms', animationFillMode: 'both' }}>
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Alterar Email</CardTitle>
+                    <CardDescription>
+                      Mude o endereço de email de sua conta. Requer a senha atual.
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <Form {...emailForm}>
+                      <form onSubmit={emailForm.handleSubmit(onSubmitEmailOptions)} className="space-y-4">
+                        <FormField
+                          control={emailForm.control}
+                          name="newEmail"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Novo Email</FormLabel>
+                              <FormControl>
+                                <Input type="email" placeholder="Seu novo email" {...field} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={emailForm.control}
+                          name="currentPassword"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Senha Atual</FormLabel>
+                              <FormControl>
+                                <Input type="password" placeholder="Sua senha atual" {...field} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <Button type="submit" disabled={isUpdatingEmail} className="w-full uppercase" variant="outline">
+                          {isUpdatingEmail ? <><Loader2 className="animate-spin" /> Salvando...</> : "Atualizar Email"}
+                        </Button>
+                      </form>
+                    </Form>
+                  </CardContent>
+                </Card>
+              </div>
+
+              <div className="animate-card-in" style={{ animationDelay: '160ms', animationFillMode: 'both' }}>
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Alterar Senha</CardTitle>
+                    <CardDescription>
+                      Recadastre a sua palavra passe do sistema.
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <Form {...passwordForm}>
+                      <form onSubmit={passwordForm.handleSubmit(onSubmitPasswordOptions)} className="space-y-4">
+                        <FormField
+                          control={passwordForm.control}
+                          name="currentPassword"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Senha Atual</FormLabel>
+                              <FormControl>
+                                <Input type="password" placeholder="Sua senha atual" {...field} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={passwordForm.control}
+                          name="newPassword"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Nova Senha</FormLabel>
+                              <FormControl>
+                                <Input type="password" placeholder="Nova senha" {...field} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={passwordForm.control}
+                          name="confirmNewPassword"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Confirmar Nova Senha</FormLabel>
+                              <FormControl>
+                                <Input type="password" placeholder="Confirme a nova senha" {...field} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <Button type="submit" disabled={isUpdatingPassword} className="w-full uppercase" variant="outline">
+                          {isUpdatingPassword ? <><Loader2 className="animate-spin" /> Salvando...</> : "Atualizar Senha"}
+                        </Button>
+                      </form>
+                    </Form>
+                  </CardContent>
+                </Card>
+              </div>
             </div>
           </TabsContent>
         </Tabs>
