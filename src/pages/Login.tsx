@@ -3,7 +3,6 @@ import { useForm } from "react-hook-form";
 import { Link } from "react-router";
 import { useEffect } from "react";
 import { toast } from "sonner";
-import { Toaster } from "sonner";
 import {
   Form,
   FormControl,
@@ -20,6 +19,8 @@ import { loginSchema, type LoginFormData } from "../schemas/auth.schemas";
 import { useAppNavigation } from "../hooks/useAuth";
 import { ROUTES } from "../routes/routes";
 import logo from "../assets/icons/logo.png";
+import bgArt from "../assets/images/bg_art.png";
+import { House, CalendarDays } from "lucide-react";
 
 export default function LogIn() {
   const { goToHome } = useAppNavigation();
@@ -65,13 +66,19 @@ export default function LogIn() {
   }
 
   return (
-    <div className="min-h-screen bg-background flex items-stretch">
-      <Toaster className="text-foreground" />
+    <div 
+      className="min-h-screen flex items-stretch bg-gradient-to-b from-background to-primary bg-fixed bg-cover bg-center"
+      style={{
+        backgroundImage: `radial-gradient(var(--chart-1), var(--chart-4)), url(${bgArt})`,
+        backgroundBlendMode: "multiply",
+      }}
+    >
       {/* Painel esquerdo — branding */}
       <div
-        className="hidden lg:flex flex-col items-center justify-center flex-1 relative overflow-hidden"
+        className="hidden lg:flex flex-col items-center justify-center flex-1 relative overflow-hidden bg-background/80"
         style={{
-          background: 'linear-gradient(135deg, var(--secondary) 0%, var(--background) 60%, var(--chart-4) 100%)',
+          backdropFilter: "blur(12px)",
+          borderRight: "1px solid rgba(255,255,255,0.05)"
         }}
       >
         {/* Orbs decorativos */}
@@ -158,6 +165,31 @@ export default function LogIn() {
               <Button type="submit" className="w-full font-prompt uppercase">
                 Entrar
               </Button>
+
+              {/* Acesso sem conta */}
+              <div className="relative">
+                <div className="absolute inset-0 flex items-center">
+                  <div className="w-full border-t border-border" />
+                </div>
+                <div className="relative flex justify-center text-xs">
+                  <span className="bg-[rgba(20,20,35,0.8)] px-3 text-muted-foreground font-prompt">
+                    ou acesse sem conta
+                  </span>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <Link to={ROUTES.HOME}>
+                  <Button variant="outline" type="button" className="w-full font-prompt text-xs gap-1.5">
+                    <House size={14} /> Página inicial
+                  </Button>
+                </Link>
+                <Link to={ROUTES.SESSIONS}>
+                  <Button variant="outline" type="button" className="w-full font-prompt text-xs gap-1.5">
+                    <CalendarDays size={14} /> Ver eventos
+                  </Button>
+                </Link>
+              </div>
             </form>
           </Form>
         </div>
