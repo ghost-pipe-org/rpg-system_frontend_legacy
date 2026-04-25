@@ -20,7 +20,7 @@ export default function RootLayout({ children }: RootLayoutProps) {
     >
       <Toaster className="text-foreground" />
       <Navbar />
-      <main className="flex-1 flex flex-col w-full items-center justify-center my-20 ">
+      <main className="flex-1 flex flex-col w-full items-center py-20">
         {children}
       </main>
       <Footer />

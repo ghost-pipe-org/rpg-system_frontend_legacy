@@ -3,6 +3,7 @@ import { useForm } from "react-hook-form";
 import { Link } from "react-router";
 import { useEffect } from "react";
 import { toast } from "sonner";
+import { Toaster } from "sonner";
 import {
   Form,
   FormControl,
@@ -65,6 +66,7 @@ export default function LogIn() {
 
   return (
     <div className="min-h-screen bg-background flex items-stretch">
+      <Toaster className="text-foreground" />
       {/* Painel esquerdo — branding */}
       <div
         className="hidden lg:flex flex-col items-center justify-center flex-1 relative overflow-hidden"
