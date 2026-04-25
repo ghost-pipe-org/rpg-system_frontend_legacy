@@ -6,6 +6,25 @@ import { useState, useEffect } from "react";
 import type { Session } from "@/services/sessionServices/session.types";
 import { getAprovedSessions, getApprovedWorkshops } from "@/services/sessionServices/session.services";
 
+interface AnimatedCardProps {
+  index: number;
+  children: React.ReactNode;
+}
+
+function AnimatedCard({ index, children }: AnimatedCardProps) {
+  return (
+    <div
+      className="animate-card-in"
+      style={{
+        animationDelay: `${index * 80}ms`,
+        animationFillMode: 'both',
+      }}
+    >
+      {children}
+    </div>
+  );
+}
+
 const Sessions = () => {
   const [expandedSessions, setExpandedSessions] = useState<string[]>([]);
   const [expandedWorkshops, setExpandedWorkshops] = useState<string[]>([]);
@@ -120,16 +139,17 @@ const Sessions = () => {
 
             {!loadingSessions && sessions.length > 0 && (
               <div>
-                {sessions.map((session) => (
-                  <SessionCard
-                    key={session.id || `session-${Math.random()}`}
-                    session={session}
-                    isExpanded={
-                      session.id ? expandedSessions.includes(session.id) : false
-                    }
-                    onToggleExpand={toggleExpandSession}
-                    onEnrollSuccess={handleEnrollSuccess}
-                  />
+                {sessions.map((session, index) => (
+                  <AnimatedCard key={session.id || `session-${index}`} index={index}>
+                    <SessionCard
+                      session={session}
+                      isExpanded={
+                        session.id ? expandedSessions.includes(session.id) : false
+                      }
+                      onToggleExpand={toggleExpandSession}
+                      onEnrollSuccess={handleEnrollSuccess}
+                    />
+                  </AnimatedCard>
                 ))}     
               </div>
             )}
@@ -146,16 +166,17 @@ const Sessions = () => {
 
             {!loadingWorkshops && workshops.length > 0 && (
               <div>
-                {workshops.map((workshop) => (
-                  <WorkshopCard
-                    key={workshop.id || `workshop-${Math.random()}`}
-                    workshop={workshop}
-                    isExpanded={
-                      workshop.id ? expandedWorkshops.includes(workshop.id) : false
-                    }
-                    onToggleExpand={toggleExpandWorkshop}
-                    onEnrollSuccess={handleWorkshopEnrollSuccess}
-                  />
+                {workshops.map((workshop, index) => (
+                  <AnimatedCard key={workshop.id || `workshop-${index}`} index={index}>
+                    <WorkshopCard
+                      workshop={workshop}
+                      isExpanded={
+                        workshop.id ? expandedWorkshops.includes(workshop.id) : false
+                      }
+                      onToggleExpand={toggleExpandWorkshop}
+                      onEnrollSuccess={handleWorkshopEnrollSuccess}
+                    />
+                  </AnimatedCard>
                 ))}     
               </div>
             )}
@@ -167,3 +188,4 @@ const Sessions = () => {
 };
 
 export default Sessions;
+

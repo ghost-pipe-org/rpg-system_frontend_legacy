@@ -12,6 +12,7 @@ import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
+import { Loader2 } from "lucide-react";
 
 import { useAuth } from "@/context/AuthContext";
 import { updateUserProfile, updateUserEmail, updateUserPassword } from "@/services/userServices/user.services";
@@ -27,6 +28,17 @@ import {
 import type { Session } from "@/services/sessionServices/session.types";
 import { getMyEmittedSessions, getMyEnrolledSessions, getMyFacilitatedWorkshops } from "@/services/sessionServices/session.services";
 import { formatPhoneNumber } from "@/utils/formatPhoneNumber";
+
+function AnimatedCard({ index, children }: { index: number; children: React.ReactNode }) {
+  return (
+    <div
+      className="animate-card-in"
+      style={{ animationDelay: `${index * 80}ms`, animationFillMode: 'both' }}
+    >
+      {children}
+    </div>
+  );
+}
 
 const Profile = () => {
   const [expandedSessions, setExpandedSessions] = useState<string[]>([]);
@@ -277,16 +289,17 @@ const Profile = () => {
 
                 {!loadingEmitted && emittedSessions.length > 0 && (
                   <div>
-                    {emittedSessions.map((session) => (
-                      <MasterSessionCard
-                        key={session.id || `session-${Math.random()}`}
-                        session={session}
-                        isExpanded={
-                          session.id ? expandedSessions.includes(session.id) : false
-                        }
-                        onToggleExpand={toggleExpand}
-                        onCancelSuccess={() => window.location.reload()}
-                      />
+                    {emittedSessions.map((session, index) => (
+                      <AnimatedCard key={session.id || `session-${index}`} index={index}>
+                        <MasterSessionCard
+                          session={session}
+                          isExpanded={
+                            session.id ? expandedSessions.includes(session.id) : false
+                          }
+                          onToggleExpand={toggleExpand}
+                          onCancelSuccess={() => window.location.reload()}
+                        />
+                      </AnimatedCard>
                     ))}
                   </div>
                 )}
@@ -303,16 +316,17 @@ const Profile = () => {
 
                 {!loadingEmitted && emittedWorkshops.length > 0 && (
                   <div>
-                    {emittedWorkshops.map((workshop) => (
-                      <MasterWorkshopCard
-                        key={workshop.id || `workshop-${Math.random()}`}
-                        workshop={workshop}
-                        isExpanded={
-                          workshop.id ? expandedSessions.includes(workshop.id) : false
-                        }
-                        onToggleExpand={toggleExpand}
-                        onCancelSuccess={() => window.location.reload()}
-                      />
+                    {emittedWorkshops.map((workshop, index) => (
+                      <AnimatedCard key={workshop.id || `workshop-${index}`} index={index}>
+                        <MasterWorkshopCard
+                          workshop={workshop}
+                          isExpanded={
+                            workshop.id ? expandedSessions.includes(workshop.id) : false
+                          }
+                          onToggleExpand={toggleExpand}
+                          onCancelSuccess={() => window.location.reload()}
+                        />
+                      </AnimatedCard>
                     ))}
                   </div>
                 )}
@@ -338,17 +352,18 @@ const Profile = () => {
 
                 {!loadingEnrolled && enrolledSessions.length > 0 && (
                   <div>
-                    {enrolledSessions.map((session) => (
-                      <SessionCard
-                        key={session.id || `session-${Math.random()}`}
-                        session={session}
-                        isExpanded={
-                          session.id ? expandedSessions.includes(session.id) : false
-                        }
-                        onToggleExpand={toggleExpand}
-                        variant="enrolled"
-                        onCancelSuccess={handleEnrollmentCanceled}
-                      />
+                    {enrolledSessions.map((session, index) => (
+                      <AnimatedCard key={session.id || `session-${index}`} index={index}>
+                        <SessionCard
+                          session={session}
+                          isExpanded={
+                            session.id ? expandedSessions.includes(session.id) : false
+                          }
+                          onToggleExpand={toggleExpand}
+                          variant="enrolled"
+                          onCancelSuccess={handleEnrollmentCanceled}
+                        />
+                      </AnimatedCard>
                     ))}
                   </div>
                 )}
@@ -365,17 +380,18 @@ const Profile = () => {
 
                 {!loadingEnrolled && enrolledWorkshops.length > 0 && (
                   <div>
-                    {enrolledWorkshops.map((workshop) => (
-                      <WorkshopCard
-                        key={workshop.id || `workshop-${Math.random()}`}
-                        workshop={workshop}
-                        isExpanded={
-                          workshop.id ? expandedSessions.includes(workshop.id) : false
-                        }
-                        onToggleExpand={toggleExpand}
-                        variant="enrolled"
-                        onCancelSuccess={handleEnrollmentCanceled}
-                      />
+                    {enrolledWorkshops.map((workshop, index) => (
+                      <AnimatedCard key={workshop.id || `workshop-${index}`} index={index}>
+                        <WorkshopCard
+                          workshop={workshop}
+                          isExpanded={
+                            workshop.id ? expandedSessions.includes(workshop.id) : false
+                          }
+                          onToggleExpand={toggleExpand}
+                          variant="enrolled"
+                          onCancelSuccess={handleEnrollmentCanceled}
+                        />
+                      </AnimatedCard>
                     ))}
                   </div>
                 )}
@@ -428,7 +444,7 @@ const Profile = () => {
                       )}
                     />
                     <Button type="submit" disabled={isUpdatingProfile} className="w-full sm:w-auto uppercase">
-                      {isUpdatingProfile ? "Salvando..." : "Salvar Alterações"}
+                      {isUpdatingProfile ? <><Loader2 className="animate-spin" /> Salvando...</> : "Salvar Alterações"}
                     </Button>
                   </form>
                 </Form>
@@ -473,7 +489,7 @@ const Profile = () => {
                         )}
                       />
                       <Button type="submit" disabled={isUpdatingEmail} className="w-full uppercase" variant="outline">
-                        {isUpdatingEmail ? "Salvando..." : "Atualizar Email"}
+                        {isUpdatingEmail ? <><Loader2 className="animate-spin" /> Salvando...</> : "Atualizar Email"}
                       </Button>
                     </form>
                   </Form>
@@ -530,7 +546,7 @@ const Profile = () => {
                         )}
                       />
                       <Button type="submit" disabled={isUpdatingPassword} className="w-full uppercase" variant="outline">
-                        {isUpdatingPassword ? "Salvando..." : "Atualizar Senha"}
+                        {isUpdatingPassword ? <><Loader2 className="animate-spin" /> Salvando...</> : "Atualizar Senha"}
                       </Button>
                     </form>
                   </Form>

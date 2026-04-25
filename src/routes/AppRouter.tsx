@@ -1,10 +1,13 @@
-import { Routes, Route } from 'react-router';
+import { Routes, Route, useLocation } from 'react-router';
 import { ProtectedRoute } from '../components/ProtectedRoute';
+import { PageTransition } from '../components/PageTransition';
 import { routes } from './routes';
 
 export function AppRouter() {
+  const location = useLocation();
+
   return (
-    <Routes>
+    <Routes location={location}>
       {routes.map((route) => {
         const Element = route.element;
         return (
@@ -14,10 +17,14 @@ export function AppRouter() {
             element={
               route.requireAuth ? (
                 <ProtectedRoute>
-                  <Element />
+                  <PageTransition key={location.pathname}>
+                    <Element />
+                  </PageTransition>
                 </ProtectedRoute>
               ) : (
-                <Element />
+                <PageTransition key={location.pathname}>
+                  <Element />
+                </PageTransition>
               )
             }
           />

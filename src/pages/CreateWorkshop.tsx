@@ -388,7 +388,11 @@ const CreateWorkshop = () => {
               className="w-full font-prompt uppercase"
               disabled={isSubmitting}
             >
-              {isSubmitting ? "Emitindo oficina..." : "Emitir oficina"}
+              {isSubmitting ? (
+                <><Loader2 className="animate-spin" /> Emitindo oficina...</>
+              ) : (
+                "Emitir oficina"
+              )}
             </Button>
           </form>
         </Form>
