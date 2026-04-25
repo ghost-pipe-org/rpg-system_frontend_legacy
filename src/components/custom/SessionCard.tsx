@@ -3,11 +3,13 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
+import { CheckCircle2 } from "lucide-react";
 import type { Session } from "@/services/sessionServices/session.types";
 import { enrollInSession, cancelEnrollment } from "@/services/sessionServices/session.services";
 import { toast } from "sonner";
 import { useState } from "react";
 import { formatDateBR } from "@/utils/formatDate";
+import { getRelativeDate } from "@/utils/relativeDate";
 
 
 export function SessionSkeleton() {
@@ -62,6 +64,7 @@ export function SessionCard({
 }: SessionCardProps) {
   const [enrolling, setEnrolling] = useState(false);
   const [canceling, setCanceling] = useState(false);
+  const [justEnrolled, setJustEnrolled] = useState(false);
 
   const isEnrollmentClosed = session.approvedDate 
     ? new Date().setHours(0,0,0,0) >= new Date(session.approvedDate).setHours(0,0,0,0)
@@ -81,8 +84,8 @@ export function SessionCard({
       setEnrolling(true);
       await enrollInSession(session.id);
       toast.success("Inscrição realizada com sucesso!");
-      
-      // Chama callback para atualizar a lista
+      setJustEnrolled(true);
+      setTimeout(() => setJustEnrolled(false), 3000);
       if (onEnrollSuccess) {
         onEnrollSuccess();
       }
@@ -133,7 +136,7 @@ export function SessionCard({
   const systemLogo = systemLogos[session.system || 'Outros'] || systemLogos['Outros'];
 
   return (
-    <Card className="mb-6 bg-background border-1 border-accent">
+    <Card className="mb-6 bg-background border-1 border-accent transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:shadow-primary/5">
       <CardHeader className="flex flex-row items-start gap-4 pb-3 font-pixelsans text-foreground">
       <img
         src={systemLogo}
@@ -147,8 +150,13 @@ export function SessionCard({
         <div className="space-y-1">
           <CardTitle className="text-2xl">{session.title}</CardTitle>
           <p className="text-sm text-muted-foreground font-prompt">
-            {session.system} | {session.approvedDate ? formatDateBR(session.approvedDate) : (session.createdAt && formatDateBR(session.createdAt))} |{" "}
-            {session.period}
+            {session.system} | {session.approvedDate ? formatDateBR(session.approvedDate) : (session.createdAt && formatDateBR(session.createdAt))}
+            {session.approvedDate && (
+              <span className="ml-1 text-primary font-medium">
+                ({getRelativeDate(session.approvedDate)})
+              </span>
+            )}
+            {" | "}{session.period}
           </p>
         </div>
       </CardHeader>
@@ -161,15 +169,25 @@ export function SessionCard({
             variant="outline"
             size="sm"
             onClick={() => session.id && onToggleExpand(session.id)}
-            className="text text-accent-foreground font-semibold cursor-pointer py-2 uppercase w-full"
+            className="text text-accent-foreground font-semibold cursor-pointer py-2 uppercase w-full gap-2"
           >
             <span className="text-sm">Saiba</span>
-            <span>{isExpanded ? "−" : "+"}</span>
+            <span
+              className="inline-block transition-transform duration-300 ease-in-out"
+              style={{ transform: isExpanded ? 'rotate(45deg)' : 'rotate(0deg)' }}
+            >+</span>
           </Button>
         </div>
 
-        {isExpanded && (
-          <div className="space-y-4 animate-in fade-in duration-300">
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateRows: isExpanded ? '1fr' : '0fr',
+            transition: 'grid-template-rows 0.35s cubic-bezier(0.16, 1, 0.3, 1)',
+          }}
+        >
+          <div style={{ overflow: 'hidden' }}>
+          <div className="space-y-4 pt-2">
             <Separator />
 
             <div className="space-y-3 text-foreground">
@@ -200,17 +218,19 @@ export function SessionCard({
 
             {variant === 'default' ? (
               <Button
-                className="w-full mt-2 uppercase"
-                disabled={(session.slots || 0) === 0 || enrolling || isEnrollmentClosed}
+                className={`w-full mt-2 uppercase transition-all duration-300 ${justEnrolled ? 'bg-green-600 hover:bg-green-600' : ''}`}
+                disabled={(session.slots || 0) === 0 || enrolling || isEnrollmentClosed || justEnrolled}
                 onClick={handleEnroll}
               >
-                {enrolling 
-                  ? "Inscrevendo..." 
-                  : isEnrollmentClosed
-                    ? "Inscrições Encerradas"
-                    : (session.slots || 0) > 0 
-                      ? "Inscreva-se" 
-                      : "Sem Vagas Disponíveis"
+                {enrolling
+                  ? "Inscrevendo..."
+                  : justEnrolled
+                    ? <><CheckCircle2 className="w-4 h-4" /> Inscrito!</>
+                    : isEnrollmentClosed
+                      ? "Inscrições Encerradas"
+                      : (session.slots || 0) > 0
+                        ? "Inscreva-se"
+                        : "Sem Vagas Disponíveis"
                 }
               </Button>
             ) : (
@@ -234,7 +254,8 @@ export function SessionCard({
               </Button>
             )}
           </div>
-        )}
+          </div>
+        </div>
       </CardContent>
     </Card>
   );

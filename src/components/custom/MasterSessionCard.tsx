@@ -85,7 +85,7 @@ export function MasterSessionCard({
 
   return (
     <>
-      <Card className="mb-6 bg-background border-2 border-primary/20 shadow-lg">
+      <Card className="mb-6 bg-background border-2 border-primary/20 shadow-lg transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-primary/10">
         <CardHeader className="flex flex-row items-start gap-4 pb-3 font-pixelsans text-foreground">
           <img
             src={systemLogo}

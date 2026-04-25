@@ -38,6 +38,17 @@ import {
 import { toast } from "sonner";
 import { formatDateBR, datetimeLocalToISO } from "@/utils/formatDate";
 
+function AnimatedCard({ index, children }: { index: number; children: React.ReactNode }) {
+  return (
+    <div
+      className="animate-card-in"
+      style={{ animationDelay: `${index * 80}ms`, animationFillMode: 'both' }}
+    >
+      {children}
+    </div>
+  );
+}
+
 const Admin = () => {
   const { user } = useAuth();
   const [sessions, setSessions] = useState<Session[]>([]);
@@ -287,12 +298,12 @@ const Admin = () => {
 
             {!loadingSessions && sessions.length > 0 && (
               <div className="space-y-6">
-                {sessions.map((session) => {
+                {sessions.map((session, index) => {
                   const systemLogo = systemLogos[session.system || 'Outros'] || systemLogos['Outros'];
-                  
                   return (
-                    <Card key={session.id} className="bg-background border-accent">
-                      <CardHeader className="flex flex-row items-start gap-4 pb-3">
+                    <AnimatedCard key={session.id} index={index}>
+                      <Card className="bg-background border-accent">
+                        <CardHeader className="flex flex-row items-start gap-4 pb-3">
                         <img
                           src={systemLogo}
                           alt={session.system || 'Sistema'}
@@ -364,7 +375,8 @@ const Admin = () => {
                           </Button>
                         </div>
                       </CardContent>
-                    </Card>
+                      </Card>
+                    </AnimatedCard>
                   );
                 })}
               </div>
@@ -382,13 +394,14 @@ const Admin = () => {
 
             {!loadingWorkshops && workshops.length > 0 && (
               <div className="space-y-6">
-                {workshops.map((workshop) => {
+                {workshops.map((workshop, index) => {
                   const facilitatorNames = workshop.facilitators
                     ? workshop.facilitators.map(f => f.user.name).join(', ')
                     : 'Não informado';
 
                   return (
-                    <Card key={workshop.id} className="bg-background border-accent">
+                    <AnimatedCard key={workshop.id} index={index}>
+                      <Card className="bg-background border-accent">
                       <CardHeader className="flex flex-row items-start gap-4 pb-3">
                         <div className="flex-1">
                           <CardTitle className="text-2xl font-pixelsans">
@@ -455,7 +468,8 @@ const Admin = () => {
                           </Button>
                         </div>
                       </CardContent>
-                    </Card>
+                      </Card>
+                    </AnimatedCard>
                   );
                 })}
               </div>

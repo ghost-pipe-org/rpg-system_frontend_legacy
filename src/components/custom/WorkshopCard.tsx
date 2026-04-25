@@ -3,6 +3,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
+import { ScrollText } from "lucide-react";
 import type { Session } from "@/services/sessionServices/session.types";
 import { enrollInWorkshop, cancelWorkshopEnrollment } from "@/services/sessionServices/session.services";
 import { toast } from "sonner";
@@ -124,6 +125,9 @@ export function WorkshopCard({
   return (
     <Card className="mb-6 bg-background border-1 border-accent">
       <CardHeader className="flex flex-row items-start gap-4 pb-3 font-pixelsans text-foreground">
+        <div className="w-16 h-16 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center flex-shrink-0">
+          <ScrollText className="w-8 h-8 text-primary" />
+        </div>
         <div className="space-y-1">
           <CardTitle className="text-2xl">{workshop.title}</CardTitle>
           <p className="text-sm text-muted-foreground font-prompt">
@@ -141,15 +145,25 @@ export function WorkshopCard({
             variant="outline"
             size="sm"
             onClick={() => workshop.id && onToggleExpand(workshop.id)}
-            className="text text-accent-foreground font-semibold cursor-pointer py-2 uppercase w-full"
+            className="text text-accent-foreground font-semibold cursor-pointer py-2 uppercase w-full gap-2"
           >
             <span className="text-sm">Saiba</span>
-            <span>{isExpanded ? "−" : "+"}</span>
+            <span
+              className="inline-block transition-transform duration-300 ease-in-out"
+              style={{ transform: isExpanded ? 'rotate(45deg)' : 'rotate(0deg)' }}
+            >+</span>
           </Button>
         </div>
 
-        {isExpanded && (
-          <div className="space-y-4 animate-in fade-in duration-300">
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateRows: isExpanded ? '1fr' : '0fr',
+            transition: 'grid-template-rows 0.35s cubic-bezier(0.16, 1, 0.3, 1)',
+          }}
+        >
+          <div style={{ overflow: 'hidden' }}>
+          <div className="space-y-4 pt-2">
             <Separator />
 
             <div className="space-y-3 text-foreground">
@@ -216,7 +230,8 @@ export function WorkshopCard({
               </Button>
             )}
           </div>
-        )}
+          </div>
+        </div>
       </CardContent>
     </Card>
   );

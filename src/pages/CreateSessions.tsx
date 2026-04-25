@@ -7,7 +7,7 @@ import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Textarea } from '../components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select';
-import { Plus, X } from 'lucide-react';
+import { Plus, X, Loader2 } from 'lucide-react';
 import { createSessionSchema, type CreateSessionFormData, System } from '../schemas';
 import { createSession } from '../services/sessionServices/session.services';
 import { toast } from 'sonner';
@@ -316,7 +316,11 @@ const CreateSessions = () => {
               className="w-full font-prompt uppercase"
               disabled={isSubmitting}
             >
-              {isSubmitting ? "Emitindo sessão..." : "Emitir sessão"}
+              {isSubmitting ? (
+                <><Loader2 className="animate-spin" /> Emitindo sessão...</>
+              ) : (
+                "Emitir sessão"
+              )}
             </Button>
           </form>
         </Form>

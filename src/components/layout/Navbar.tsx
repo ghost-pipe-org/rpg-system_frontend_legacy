@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Button } from "../ui/button";
-import { Menu, LogOut, User as UserIcon } from "lucide-react";
+import { Menu, LogOut, User as UserIcon, X } from "lucide-react";
 import { useLocation } from "react-router";
 import logo from "../../assets/icons/logo.png";
 import { useAuth } from "../../context/AuthContext";
@@ -33,8 +33,8 @@ export default function Navbar() {
   const isAuthPage =
     location.pathname === ROUTES.LOGIN || location.pathname === ROUTES.REGISTER;
 
-  // Verifica se o usuário é admin
   const isAdmin = user?.role === 'ADMIN';
+  const isMasterOrAdmin = user?.role === 'MASTER' || user?.role === 'ADMIN';
 
   const pages: Page[] = [
     {
@@ -45,14 +45,17 @@ export default function Navbar() {
       endpoint: ROUTES.SESSIONS,
       linkName: ROUTE_LABELS[ROUTES.SESSIONS],
     },
-    {
-      endpoint: ROUTES.CREATE_SESSIONS,
-      linkName: ROUTE_LABELS[ROUTES.CREATE_SESSIONS],
-    },
-    {
-      endpoint: ROUTES.CREATE_WORKSHOP,
-      linkName: ROUTE_LABELS[ROUTES.CREATE_WORKSHOP],
-    },
+    // Emitir Sessão e Oficina só aparecem para MASTER e ADMIN
+    ...(isMasterOrAdmin ? [
+      {
+        endpoint: ROUTES.CREATE_SESSIONS,
+        linkName: ROUTE_LABELS[ROUTES.CREATE_SESSIONS],
+      },
+      {
+        endpoint: ROUTES.CREATE_WORKSHOP,
+        linkName: ROUTE_LABELS[ROUTES.CREATE_WORKSHOP],
+      },
+    ] : []),
     {
       endpoint: ROUTES.PROFILE,
       linkName: ROUTE_LABELS[ROUTES.PROFILE],
@@ -121,6 +124,15 @@ export default function Navbar() {
               <span className="text-sm font-medium">
                 {user?.name || "Usuário"}
               </span>
+              <span className={`text-xs font-bold px-2 py-0.5 rounded-full uppercase tracking-wide ${
+                user?.role === 'ADMIN'
+                  ? 'bg-primary/20 text-primary border border-primary/30'
+                  : user?.role === 'MASTER'
+                    ? 'bg-accent/20 text-accent border border-accent/30'
+                    : 'bg-muted text-muted-foreground border border-border'
+              }`}>
+                {user?.role === 'ADMIN' ? 'Admin' : user?.role === 'MASTER' ? 'Mestre' : 'Player'}
+              </span>
             </div>
             <Button
               variant="outline"
@@ -159,12 +171,22 @@ export default function Navbar() {
           aria-expanded={menuOpen}
           onClick={() => setMenuOpen((open) => !open)}
         >
-          <Menu color="var(--foreground)" size={36} />
+          {menuOpen
+            ? <X color="var(--foreground)" size={36} />
+            : <Menu color="var(--foreground)" size={36} />}
         </button>
       )}
 
-      {!isAuthPage && menuOpen && (
-        <div className="lg:hidden absolute top-15 right-0 mt-2 bg-background border border-primary border-t-background rounded-t-none shadow-lg flex flex-col items-center p-4 z-50 min-w-[160px]">
+      {!isAuthPage && (
+        <div
+          className="lg:hidden absolute top-[64px] right-0 left-0 bg-background border-b border-primary/30 shadow-lg flex flex-col items-center p-4 z-50 overflow-hidden"
+          style={{
+            maxHeight: menuOpen ? '500px' : '0px',
+            opacity: menuOpen ? 1 : 0,
+            transition: 'max-height 0.35s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.25s ease',
+            pointerEvents: menuOpen ? 'auto' : 'none',
+          }}
+        >
           {pages.map((page, index) => (
             <div key={`${page.linkName}-${index}`} className="flex my-2">
               <button
@@ -183,10 +205,19 @@ export default function Navbar() {
 
           {isAuthenticated ? (
             <div className="flex flex-col justify-center items-center gap-2 mt-2">
-              <div className="flex items-center gap-2 text-foreground mb-2">
+              <div className="flex items-center gap-2 text-foreground mb-1">
                 <UserIcon size={20} />
                 <span className="text-sm font-medium">
                   {user?.name || "Usuário"}
+                </span>
+                <span className={`text-xs font-bold px-2 py-0.5 rounded-full uppercase tracking-wide ${
+                  user?.role === 'ADMIN'
+                    ? 'bg-primary/20 text-primary border border-primary/30'
+                    : user?.role === 'MASTER'
+                      ? 'bg-accent/20 text-accent border border-accent/30'
+                      : 'bg-muted text-muted-foreground border border-border'
+                }`}>
+                  {user?.role === 'ADMIN' ? 'Admin' : user?.role === 'MASTER' ? 'Mestre' : 'Player'}
                 </span>
               </div>
               <Button
