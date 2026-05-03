@@ -1,4 +1,4 @@
-import { Calendar, MapPin, Zap, Rocket, ChevronLeft, ChevronRight } from "lucide-react";
+import { Calendar, MapPin, Zap, ChevronLeft, ChevronRight } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import astronautImg from "@/assets/images/image-6.webp";
 

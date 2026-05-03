@@ -1,6 +1,6 @@
 import { RootLayout } from "../components/layout";
 import { useDocumentTitle } from "../hooks/useDocumentTitle";
-import { Calendar, MapPin, Rocket, Zap, Dice6, Wrench, FlaskConical, Clock, ChevronRight, Sunrise, Sun, Moon } from "lucide-react";
+import { Rocket, Dice6, Wrench, FlaskConical, Clock, ChevronRight, Sunrise, Sun, Moon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router";
 import { ROUTES } from "@/routes/routes";
@@ -28,7 +28,7 @@ const Home = () => {
         {/* ── HERO ── */}
         <div className="mb-10 flex flex-col items-center">
           <EventBanner />
-          
+
           <div className="flex flex-col items-center gap-3 -mt-4 mb-4">
             <Link to={ROUTES.SESSIONS}>
               <Button
@@ -107,7 +107,7 @@ const Home = () => {
         {/* ── FOOTER DO EVENTO ── */}
         <div className="text-center pb-4">
           <p className="text-white/25 text-xs font-mono">
-            Prepare sua ficha · Ajuste seus dados · Vamos sair do espaço acadêmico para o espaço sideral 🌙🚀
+            Prepare sua ficha · Ajuste seus dados · Vamos sair do espaço acadêmico para o espaço sideral
           </p>
         </div>
 
