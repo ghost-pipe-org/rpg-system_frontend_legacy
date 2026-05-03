@@ -144,6 +144,7 @@ const Sessions = () => {
   const [loadingSessions, setLoadingSessions] = useState(true);
   const [loadingWorkshops, setLoadingWorkshops] = useState(false);
   const [workshopsFetched, setWorkshopsFetched] = useState(false);
+  const [selectedEventDate, setSelectedEventDate] = useState<string>("2026-05-06");
 
   const toggleExpandSession = (sessionId: string) => {
     setExpandedSessions((prev) =>
@@ -231,6 +232,9 @@ const Sessions = () => {
     await fetchWorkshops();
   };
 
+  const filteredSessions = sessions.filter((s) => s.approvedDate?.includes(selectedEventDate));
+  const filteredWorkshops = workshops.filter((w) => w.approvedDate?.includes(selectedEventDate));
+
   return (
     <RootLayout>
       <div className="container mx-auto px-4 max-w-4xl">
@@ -238,8 +242,7 @@ const Sessions = () => {
           Eventos Disponíveis
         </h1>
 
-        {/* 🚀 REMOVER APÓS O EVENTO — apagar linha abaixo e o import no topo */}
-        <EventBanner />
+        <EventBanner onSelectDate={setSelectedEventDate} />
 
         <Tabs defaultValue="sessions" onValueChange={handleTabChange} className="w-full">
           <TabsList className="grid w-full grid-cols-2 mb-8">
@@ -252,15 +255,15 @@ const Sessions = () => {
 
             {loadingSessions && <SessionSkeleton />}
 
-            {!loadingSessions && sessions.length === 0 && (
+            {!loadingSessions && filteredSessions.length === 0 && (
               <p className="text-muted-foreground text-center py-8">
-                Não há mesas de RPG disponíveis no momento.
+                Não há mesas de RPG disponíveis para esta data.
               </p>
             )}
 
-            {!loadingSessions && sessions.length > 0 && (
+            {!loadingSessions && filteredSessions.length > 0 && (
               <div>
-                {sessions.map((session, index) => (
+                {filteredSessions.map((session, index) => (
                   <AnimatedCard key={session.id || `session-${index}`} index={index}>
                     <SessionCard
                       session={session}
@@ -281,15 +284,15 @@ const Sessions = () => {
 
             {loadingWorkshops && <WorkshopSkeleton />}
 
-            {!loadingWorkshops && workshopsFetched && workshops.length === 0 && (
+            {!loadingWorkshops && workshopsFetched && filteredWorkshops.length === 0 && (
               <p className="text-muted-foreground text-center py-8">
-                Não há oficinas disponíveis no momento.
+                Não há oficinas disponíveis para esta data.
               </p>
             )}
 
-            {!loadingWorkshops && workshops.length > 0 && (
+            {!loadingWorkshops && filteredWorkshops.length > 0 && (
               <div>
-                {workshops.map((workshop, index) => (
+                {filteredWorkshops.map((workshop, index) => (
                   <AnimatedCard key={workshop.id || `workshop-${index}`} index={index}>
                     <WorkshopCard
                       workshop={workshop}
