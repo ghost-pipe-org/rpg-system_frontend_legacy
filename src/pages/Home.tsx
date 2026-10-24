@@ -4,7 +4,8 @@ import { EventBanner } from "@/components/custom/EventBanner";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router";
 import { ROUTES } from "@/routes/routes";
-import { ChevronRight, ExternalLink } from "lucide-react";
+import { ChevronRight, Flame } from "lucide-react";
+import { EVENT_THEME } from "@/config/eventTheme";
 
 const Home = () => {
   useDocumentTitle();
@@ -13,30 +14,55 @@ const Home = () => {
     <RootLayout>
       <div className="w-full max-w-4xl mx-auto px-4 pb-12 flex flex-col items-center">
 
-        {/* Banner do Evento Arraiá */}
+        {/* Banner do Evento Dia de los Muertos */}
         <EventBanner />
 
         {/* Sinopse do Evento */}
         <div className="w-full max-w-3xl mt-4 mb-10">
-          <div className="relative p-6 sm:p-8 rounded-2xl overflow-hidden bg-[#0a1128]/50 border border-cyan-500/20 shadow-[0_0_30px_rgba(0,255,255,0.05)] backdrop-blur-sm">
+          <div
+            className="relative p-6 sm:p-8 rounded-2xl overflow-hidden backdrop-blur-sm"
+            style={{
+              background: "rgba(20, 4, 5, 0.7)",
+              border: "1px solid rgba(232, 96, 76, 0.3)",
+              boxShadow: "0 0 30px rgba(180, 30, 20, 0.12)",
+            }}
+          >
             {/* Elemento decorativo */}
-            <div className="absolute top-0 left-0 w-1 h-full bg-gradient-to-b from-cyan-400 to-transparent" />
+            <div
+              className="absolute top-0 left-0 w-1 h-full"
+              style={{ background: `linear-gradient(to bottom, ${EVENT_THEME.coral}, transparent)` }}
+            />
 
-            <p className="text-white/80 text-lg leading-relaxed mb-6 font-medium">
-              Vem aí a edição especial do <strong className="text-cyan-400">Tópicos Especiais em Aventuras - Arraiá</strong>, onde o clima junino ganha uma nova dimensão.
-              Em uma celebração que mistura a energia das festas de São João com a criatividade da ficção científica, convidamos
-              você para uma experiência única entre tradição e tecnologia.
+            <p className="text-lg leading-relaxed mb-6 font-medium" style={{ color: "rgba(246,236,224,0.85)" }}>
+              Chegou a edição especial do{" "}
+              <strong style={{ color: EVENT_THEME.coral }}>
+                Tópicos Especiais em Aventuras - Dia de los Muertos
+              </strong>
+              . Entre velas, flores e memórias, mesas de RPG de mistério e horror vão
+              guiar você por histórias onde o véu entre os mundos fica mais fino.
+              Nunca jogou RPG antes? Nunca é tarde para começar: entre nesta
+              aventura com a gente.
             </p>
 
-            <div className="bg-cyan-950/30 p-4 rounded-xl border border-cyan-800/30 mb-6">
-              <p className="text-cyan-100/90 text-md leading-relaxed italic text-center">
-                "Prepare-se para atravessar portais, lançar os dados e criar novas histórias em um universo onde fogueiras
-                iluminam e estrelas dançam ao som do forró."
+            <div
+              className="p-4 rounded-xl mb-6"
+              style={{
+                background: "rgba(74, 10, 10, 0.35)",
+                border: "1px solid rgba(232, 96, 76, 0.25)",
+              }}
+            >
+              <p className="text-md leading-relaxed italic text-center" style={{ color: EVENT_THEME.cream }}>
+                “Entre velas, memórias e segredos, algumas almas ainda não
+                descansaram!”
               </p>
             </div>
 
-            <div className="flex items-center justify-center gap-2 text-cyan-500/60 font-mono text-sm tracking-widest uppercase">
-              <span>Mais informações em breve</span>
+            <div
+              className="flex items-center justify-center gap-2 text-sm tracking-widest uppercase"
+              style={{ color: "rgba(232,96,76,0.8)" }}
+            >
+              <Flame size={14} />
+              <span>31 de outubro · 13h30 às 18h · UEPB Campus VII</span>
             </div>
           </div>
         </div>
@@ -47,25 +73,15 @@ const Home = () => {
             <Button
               className="w-full sm:w-auto uppercase font-bold px-8 py-6 text-sm rounded-xl gap-2 transition-transform hover:scale-105"
               style={{
-                background: "linear-gradient(135deg, #06b6d4, #3b82f6)",
-                boxShadow: "0 4px 20px rgba(6, 182, 212, 0.3)",
+                background: "linear-gradient(135deg, #e8604c, #a31f1f)",
+                boxShadow: "0 4px 20px rgba(232, 96, 76, 0.35)",
                 border: "none",
-                color: "white",
+                color: EVENT_THEME.cream,
               }}
             >
-              Mesas de RPG <ChevronRight size={18} />
+              Inscreva-se nas mesas <ChevronRight size={18} />
             </Button>
           </Link>
-
-          {/* Placeholder para Competição de Desenho */}
-          <Button
-            variant="outline"
-            className="w-full sm:w-auto uppercase font-bold px-8 py-6 text-sm rounded-xl gap-2 border-cyan-700 text-cyan-500 hover:bg-cyan-950/30 hover:text-cyan-400"
-            disabled
-            title="Link em breve!"
-          >
-            Competição de Desenho (Em breve...) <ExternalLink size={18} />
-          </Button>
         </div>
 
       </div>

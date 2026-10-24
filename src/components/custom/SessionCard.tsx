@@ -10,6 +10,7 @@ import { toast } from "sonner";
 import { useState } from "react";
 import { formatDateBR } from "@/utils/formatDate";
 import { getRelativeDate } from "@/utils/relativeDate";
+import { EnrollmentSuccessModal } from "@/components/custom/EnrollmentSuccessModal";
 
 
 export function SessionSkeleton() {
@@ -65,6 +66,7 @@ export function SessionCard({
   const [enrolling, setEnrolling] = useState(false);
   const [canceling, setCanceling] = useState(false);
   const [justEnrolled, setJustEnrolled] = useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
 
   const isEnrollmentClosed = session.approvedDate 
     ? new Date().setHours(0,0,0,0) >= new Date(session.approvedDate).setHours(0,0,0,0)
@@ -85,6 +87,7 @@ export function SessionCard({
       await enrollInSession(session.id);
       toast.success("Inscrição realizada com sucesso!");
       setJustEnrolled(true);
+      setShowSuccessModal(true);
       setTimeout(() => setJustEnrolled(false), 3000);
       if (onEnrollSuccess) {
         onEnrollSuccess();
@@ -261,6 +264,13 @@ export function SessionCard({
           </div>
         </div>
       </CardContent>
+
+      <EnrollmentSuccessModal
+        open={showSuccessModal}
+        onOpenChange={setShowSuccessModal}
+        event={session}
+        type="session"
+      />
     </Card>
   );
 }

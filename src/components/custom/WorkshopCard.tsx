@@ -9,6 +9,7 @@ import { enrollInWorkshop, cancelWorkshopEnrollment } from "@/services/sessionSe
 import { toast } from "sonner";
 import { useState } from "react";
 import { formatDateBR } from "@/utils/formatDate";
+import { EnrollmentSuccessModal } from "@/components/custom/EnrollmentSuccessModal";
 
 
 export function WorkshopSkeleton() {
@@ -52,6 +53,7 @@ export function WorkshopCard({
   const [enrolling, setEnrolling] = useState(false);
   const [canceling, setCanceling] = useState(false);
   const [justEnrolled, setJustEnrolled] = useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
 
   const isEnrollmentClosed = workshop.approvedDate 
     ? new Date().setHours(0,0,0,0) >= new Date(workshop.approvedDate).setHours(0,0,0,0)
@@ -72,6 +74,7 @@ export function WorkshopCard({
       await enrollInWorkshop(workshop.id);
       toast.success("Inscrição realizada com sucesso!");
       setJustEnrolled(true);
+      setShowSuccessModal(true);
       setTimeout(() => setJustEnrolled(false), 3000);
       
       if (onEnrollSuccess) {
@@ -242,6 +245,13 @@ export function WorkshopCard({
           </div>
         </div>
       </CardContent>
+
+      <EnrollmentSuccessModal
+        open={showSuccessModal}
+        onOpenChange={setShowSuccessModal}
+        event={workshop}
+        type="workshop"
+      />
     </Card>
   );
 }

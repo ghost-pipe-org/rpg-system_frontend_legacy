@@ -186,22 +186,22 @@ const Sessions = () => {
       });
   };
 
-  const fetchSessions = async () => {
+  const fetchSessions = async (showSkeleton = true) => {
     try {
-      setLoadingSessions(true);
+      if (showSkeleton) setLoadingSessions(true);
       const response = await getAprovedSessions();
       setSessions(processResponse(response));
     } catch (error) {
       console.error("Erro ao buscar sessões:", error);
       setSessions([]);
     } finally {
-      setLoadingSessions(false);
+      if (showSkeleton) setLoadingSessions(false);
     }
   };
 
-  const fetchWorkshops = async () => {
+  const fetchWorkshops = async (showSkeleton = true) => {
     try {
-      setLoadingWorkshops(true);
+      if (showSkeleton) setLoadingWorkshops(true);
       const response = await getApprovedWorkshops();
       setWorkshops(processResponse(response));
       setWorkshopsFetched(true);
@@ -209,7 +209,7 @@ const Sessions = () => {
       console.error("Erro ao buscar oficinas:", error);
       setWorkshops([]);
     } finally {
-      setLoadingWorkshops(false);
+      if (showSkeleton) setLoadingWorkshops(false);
     }
   };
 
@@ -224,11 +224,11 @@ const Sessions = () => {
   };
 
   const handleEnrollSuccess = async () => {
-    await fetchSessions();
+    await fetchSessions(false);
   };
 
   const handleWorkshopEnrollSuccess = async () => {
-    await fetchWorkshops();
+    await fetchWorkshops(false);
   };
 
   return (
