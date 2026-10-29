@@ -1,4 +1,4 @@
-import { MapPin, Clock, Dice6, Flame, Info, Users, Skull } from "lucide-react";
+import { MapPin, Clock, Dice6, Flame, Info, Users, Skull, TriangleAlert } from "lucide-react";
 import { useEffect, useRef } from "react";
 import { EVENT_THEME as MUERTOS } from "@/config/eventTheme";
 
@@ -124,6 +124,22 @@ export function EventBanner() {
       />
 
       <div className="relative z-10 px-6 py-10 sm:px-12 sm:py-14 flex flex-col items-center text-center gap-8">
+        {/* Aviso de adiamento */}
+        <div
+          className="flex flex-col sm:flex-row items-center gap-2 sm:gap-3 px-4 py-2.5 rounded-lg text-xs sm:text-sm font-semibold tracking-wider uppercase"
+          style={{
+            background: "rgba(232, 96, 76, 0.15)",
+            border: "1px solid rgba(232, 96, 76, 0.6)",
+            color: MUERTOS.cream,
+          }}
+        >
+          <TriangleAlert size={16} style={{ color: MUERTOS.coral }} />
+          <span>
+            Evento adiado! Nova data:{" "}
+            <strong style={{ color: MUERTOS.coral }}>07 de novembro</strong>
+          </span>
+        </div>
+
         {/* Top Header */}
         <div className="flex flex-col items-center gap-2">
           <div
@@ -187,18 +203,26 @@ export function EventBanner() {
 
         {/* Data / Hora / Local */}
         <div className="flex flex-col sm:flex-row items-center gap-5 sm:gap-0">
-          <div className="flex items-center gap-2 sm:pr-6">
+          <div className="flex flex-col items-center sm:pr-6">
+            <div className="flex items-center gap-2">
+              <span
+                className="text-5xl sm:text-6xl font-black leading-none"
+                style={{ color: MUERTOS.cream }}
+              >
+                07
+              </span>
+              <span
+                className="text-lg font-bold tracking-widest uppercase"
+                style={{ color: MUERTOS.cream }}
+              >
+                Nov
+              </span>
+            </div>
             <span
-              className="text-5xl sm:text-6xl font-black leading-none"
-              style={{ color: MUERTOS.cream }}
+              className="text-[11px] tracking-widest uppercase mt-1"
+              style={{ color: "rgba(246,236,224,0.5)" }}
             >
-              31
-            </span>
-            <span
-              className="text-lg font-bold tracking-widest uppercase"
-              style={{ color: MUERTOS.cream }}
-            >
-              Out
+              <s>31 Out</s> · adiado
             </span>
           </div>
 

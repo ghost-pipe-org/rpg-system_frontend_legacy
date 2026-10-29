@@ -63,7 +63,7 @@ export function EnrollmentSuccessModal({
             className="text-[10px] tracking-[0.3em] uppercase"
             style={{ color: EVENT_THEME.coral }}
           >
-            Dia de los Muertos · 31 Out
+            Dia de los Muertos · 07 Nov (adiado)
           </span>
           <DialogTitle
             className="text-3xl tracking-wide font-normal"

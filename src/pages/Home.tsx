@@ -62,7 +62,10 @@ const Home = () => {
               style={{ color: "rgba(232,96,76,0.8)" }}
             >
               <Flame size={14} />
-              <span>31 de outubro · 13h30 às 18h · UEPB Campus VII</span>
+              <span>
+                <s style={{ opacity: 0.5 }}>31 de outubro</s> · adiado para{" "}
+                <strong>7 de novembro</strong> · 13h30 às 18h · UEPB Campus VII
+              </span>
             </div>
           </div>
         </div>
