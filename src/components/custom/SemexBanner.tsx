@@ -160,7 +160,7 @@ export function SemexBanner() {
         <div className="flex items-center gap-3 px-6 py-3 rounded-lg bg-[#0a1931] border border-cyan-800/50 shadow-[0_0_15px_rgba(0,255,255,0.1)]">
           <Dice6 className="text-cyan-400" size={20} />
           <span className="text-white font-bold tracking-wider text-sm">
-            MESAS DE RPG · CAOS EM NOVA PATOS
+            MESAS DE RPG · KAOS EM NOVA PATOS
           </span>
         </div>
 

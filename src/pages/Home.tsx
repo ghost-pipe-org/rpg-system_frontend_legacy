@@ -38,7 +38,7 @@ const Home = () => {
                 comunidade, apresentação de resultados e comunicações orais. No dia{" "}
                 <strong className="text-cyan-400">5 de novembro, das 8h às 12h</strong>, o
                 Tópicos Especiais em Aventuras participa com mesas de RPG do nosso sistema{" "}
-                <strong className="text-cyan-400">Caos em Nova Patos</strong>. Juntos somos mais!
+                <strong className="text-cyan-400">Kaos em Nova Patos</strong>. Juntos somos mais!
               </p>
 
               <div className="flex items-center justify-center gap-2 text-cyan-500/60 font-mono text-sm tracking-widest uppercase">
