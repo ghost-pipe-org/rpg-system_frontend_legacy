@@ -12,10 +12,16 @@ import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
-import { Loader2 } from "lucide-react";
+import { Loader2, Mail } from "lucide-react";
+import { AxiosError } from "axios";
 
 import { useAuth } from "@/context/AuthContext";
-import { updateUserProfile, updateUserEmail, updateUserPassword } from "@/services/userServices/user.services";
+import {
+  getUserProfile,
+  updateUserProfile,
+  updateUserEmail,
+  updateUserPassword,
+} from "@/services/userServices/user.services";
 import { 
   updateProfileSchema, 
   updateSecurityEmailSchema, 
@@ -51,6 +57,7 @@ const Profile = () => {
   const [isUpdatingProfile, setIsUpdatingProfile] = useState(false);
   const [isUpdatingEmail, setIsUpdatingEmail] = useState(false);
   const [isUpdatingPassword, setIsUpdatingPassword] = useState(false);
+  const [pendingEmailChange, setPendingEmailChange] = useState<string | null>(null);
 
   const { user, updateUser } = useAuth();
 
@@ -102,13 +109,36 @@ const Profile = () => {
     setIsUpdatingEmail(true);
     try {
       const response = await updateUserEmail(data);
-      if (response && response.data) {
+      if (user && response?.data) {
         updateUser({ ...user, ...response.data });
       }
-      toast.success("Email atualizado com sucesso!");
-      emailForm.reset({ currentPassword: "", newEmail: response.data?.email || data.newEmail });
-    } catch (error: any) {
-      toast.error(error.response?.data?.message || "Erro ao atualizar o email. Verifique sua senha atual.");
+
+      if (response?.pendingConfirmation) {
+        setPendingEmailChange(data.newEmail.trim());
+        toast.success(
+          response.message ||
+            "Enviamos um link de confirmação para o novo e-mail. O endereço atual será mantido até a confirmação."
+        );
+        emailForm.reset({
+          currentPassword: "",
+          newEmail: response.data?.email || user?.email || "",
+        });
+      } else {
+        setPendingEmailChange(null);
+        toast.info(
+          response?.message || "O e-mail informado já é o endereço atual da conta."
+        );
+        emailForm.reset({
+          currentPassword: "",
+          newEmail: response?.data?.email || data.newEmail,
+        });
+      }
+    } catch (error: unknown) {
+      const message =
+        error instanceof AxiosError
+          ? (error.response?.data as { message?: string } | undefined)?.message
+          : undefined;
+      toast.error(message || "Erro ao atualizar o email. Verifique sua senha atual.");
     } finally {
       setIsUpdatingEmail(false);
     }
@@ -244,6 +274,27 @@ const Profile = () => {
       }
     };
 
+    const syncProfile = async () => {
+      try {
+        const profileResponse = await getUserProfile();
+        const freshUser = profileResponse?.data?.user;
+        if (isMounted && freshUser) {
+          updateUser({ ...user, ...freshUser });
+          profileForm.reset({
+            name: freshUser.name || "",
+            phoneNumber: freshUser.phoneNumber ? formatPhoneNumber(freshUser.phoneNumber) : "",
+          });
+          emailForm.reset({
+            currentPassword: "",
+            newEmail: freshUser.email || "",
+          });
+        }
+      } catch {
+        void 0;
+      }
+    };
+
+    syncProfile();
     fetchEmittedEvents();
     fetchEnrolledEvents();
 
@@ -468,6 +519,14 @@ const Profile = () => {
                     </CardDescription>
                   </CardHeader>
                   <CardContent>
+                    {pendingEmailChange && (
+                      <div className="mb-4 rounded-lg border border-amber-500/40 bg-amber-500/10 p-3 flex items-start gap-2.5 text-xs text-amber-200">
+                        <Mail className="w-4 h-4 mt-0.5 shrink-0 text-amber-400" />
+                        <p>
+                          Link de confirmação enviado para <strong>{pendingEmailChange}</strong>. Seu endereço atual será mantido até você confirmar pelo link recebido.
+                        </p>
+                      </div>
+                    )}
                     <Form {...emailForm}>
                       <form onSubmit={emailForm.handleSubmit(onSubmitEmailOptions)} className="space-y-4">
                         <FormField

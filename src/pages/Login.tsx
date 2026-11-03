@@ -1,7 +1,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { Link } from "react-router";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import {
   Form,
@@ -15,16 +15,27 @@ import {
 import { Input } from "../components/ui/input";
 import { Button } from "../components/ui/button";
 import { useAuth } from "../context/AuthContext";
+import { ApiRequestError, authService } from "../services";
 import { loginSchema, type LoginFormData } from "../schemas/auth.schemas";
 import { useAppNavigation } from "../hooks/useAuth";
 import { ROUTES } from "../routes/routes";
 import logo from "../assets/icons/logo.png";
 import bgArt from "../assets/images/bg_art.png";
-import { House, CalendarDays } from "lucide-react";
+import { House, CalendarDays, Mail } from "lucide-react";
+
+const UNVERIFIED_EMAIL_STORAGE_KEY = "unverified_login_email";
 
 export default function LogIn() {
   const { goToHome } = useAppNavigation();
-  const { login, isAuthenticated } = useAuth();
+  const { login, isAuthenticated, isLoading } = useAuth();
+  const [unverifiedEmail, setUnverifiedEmail] = useState<string | null>(() => {
+    try {
+      return sessionStorage.getItem(UNVERIFIED_EMAIL_STORAGE_KEY);
+    } catch {
+      return null;
+    }
+  });
+  const [isResending, setIsResending] = useState(false);
 
   useEffect(() => {
     if (isAuthenticated) {
@@ -36,7 +47,7 @@ export default function LogIn() {
   const form = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
-      email: "",
+      email: unverifiedEmail ?? "",
       password: "",
     },
   });
@@ -54,14 +65,58 @@ export default function LogIn() {
     );
   }
 
+  function rememberUnverifiedEmail(email: string) {
+    setUnverifiedEmail(email);
+    try {
+      sessionStorage.setItem(UNVERIFIED_EMAIL_STORAGE_KEY, email);
+    } catch {
+      void 0;
+    }
+  }
+
+  function clearUnverifiedEmail() {
+    setUnverifiedEmail(null);
+    try {
+      sessionStorage.removeItem(UNVERIFIED_EMAIL_STORAGE_KEY);
+    } catch {
+      void 0;
+    }
+  }
+
   async function onSubmit(values: LoginFormData) {
     try {
       await login(values);
+      clearUnverifiedEmail();
       toast.success("Login realizado com sucesso!");
       goToHome();
     } catch (error: unknown) {
+      if (error instanceof ApiRequestError && error.code === "EMAIL_NOT_VERIFIED") {
+        rememberUnverifiedEmail(values.email.trim());
+        toast.error(error.message || "Confirme seu e-mail antes de fazer login.");
+        return;
+      }
       const errorMessage = error instanceof Error ? error.message : "Erro ao fazer login";
       toast.error(errorMessage);
+    }
+  }
+
+  async function handleResendVerification() {
+    const email = (unverifiedEmail || form.getValues("email")).trim();
+    if (!email) {
+      toast.error("Informe seu e-mail para reenviar a confirmação.");
+      return;
+    }
+
+    setIsResending(true);
+    try {
+      await authService.resendVerification(email);
+      toast.success("Reenviamos um novo link de confirmação para o seu e-mail.");
+    } catch (error: unknown) {
+      const errorMessage =
+        error instanceof Error ? error.message : "Erro ao reenviar verificação";
+      toast.error(errorMessage);
+    } finally {
+      setIsResending(false);
     }
   }
 
@@ -115,6 +170,48 @@ export default function LogIn() {
           <h2 className="text-2xl font-semibold text-foreground mb-2">Bem-vindo de volta</h2>
           <p className="text-muted-foreground text-sm mb-8">Entre com sua conta para continuar</p>
 
+          {unverifiedEmail && (
+            <div className="mb-6 rounded-xl border border-amber-500/40 bg-amber-500/10 p-4 space-y-3">
+              <div className="flex items-start gap-2.5 text-sm font-prompt text-amber-200">
+                <Mail className="w-4 h-4 mt-0.5 shrink-0 text-amber-400" />
+                <div className="space-y-2">
+                  <p>
+                    Agora é necessário ter um <strong>e-mail válido e verificado</strong> para acessar sua conta. Enviamos um link de confirmação para <strong>{unverifiedEmail}</strong>.
+                  </p>
+                  <p className="text-xs text-amber-200/80">
+                    Caso esse e-mail não seja válido ou você queira trocá-lo, entre em contato conosco em{" "}
+                    <a
+                      href="mailto:rpg.uepbpatos@gmail.com"
+                      className="underline hover:text-white"
+                    >
+                      rpg.uepbpatos@gmail.com
+                    </a>{" "}
+                    ou pelo Instagram{" "}
+                    <a
+                      href="https://www.instagram.com/rpg.uepbpatos"
+                      target="_blank"
+                      rel="noreferrer"
+                      className="underline hover:text-white"
+                    >
+                      @rpg.uepbpatos
+                    </a>
+                    .
+                  </p>
+                </div>
+              </div>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                disabled={isResending}
+                onClick={handleResendVerification}
+                className="w-full font-prompt text-xs uppercase"
+              >
+                {isResending ? "Reenviando..." : "Reenviar e-mail de confirmação"}
+              </Button>
+            </div>
+          )}
+
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
               <FormField
@@ -141,7 +238,15 @@ export default function LogIn() {
                 name="password"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="font-prompt">Senha</FormLabel>
+                    <div className="flex items-center justify-between">
+                      <FormLabel className="font-prompt">Senha</FormLabel>
+                      <Link
+                        to={ROUTES.RESET_PASSWORD}
+                        className="text-xs font-prompt text-accent hover:text-primary no-underline"
+                      >
+                        Esqueceu a senha?
+                      </Link>
+                    </div>
                     <FormControl>
                       <Input
                         type="password"
@@ -162,8 +267,8 @@ export default function LogIn() {
                 </Link>
               </FormDescription>
 
-              <Button type="submit" className="w-full font-prompt uppercase">
-                Entrar
+              <Button type="submit" disabled={isLoading} className="w-full font-prompt uppercase">
+                {isLoading ? "Entrando..." : "Entrar"}
               </Button>
 
               {/* Acesso sem conta */}

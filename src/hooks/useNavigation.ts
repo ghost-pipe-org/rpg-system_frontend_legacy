@@ -7,6 +7,7 @@ export const useAppNavigation = () => {
   const goToHome = () => navigate(ROUTES.HOME);
   const goToLogin = () => navigate(ROUTES.LOGIN);
   const goToRegister = () => navigate(ROUTES.REGISTER);
+  const goToResetPassword = () => navigate(ROUTES.RESET_PASSWORD);
   const goToSessions = () => navigate(ROUTES.SESSIONS);
   const goToTest = () => navigate(ROUTES.TEST);
 
@@ -16,6 +17,7 @@ export const useAppNavigation = () => {
     goToHome,
     goToLogin,
     goToRegister,
+    goToResetPassword,
     goToSessions,
     goToTest,
     goTo,

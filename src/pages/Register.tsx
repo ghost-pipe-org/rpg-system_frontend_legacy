@@ -16,7 +16,8 @@ import { Button } from "../components/ui/button";
 import { Checkbox } from "../components/ui/checkbox";
 import { Label } from "../components/ui/label";
 import { Link } from "react-router";
-import { createUser } from "../services";
+import { Mail } from "lucide-react";
+import { authService, createUser } from "../services";
 import { registerSchema, type RegisterFormData } from "../schemas/auth.schemas";
 import { useAppNavigation } from "../hooks/useAuth";
 import { useAuth } from "../context/AuthContext";
@@ -27,6 +28,8 @@ import bgArt from "../assets/images/bg_art.png";
 
 export default function SingUp() {
   const [isLoading, setIsLoading] = useState(false);
+  const [isResending, setIsResending] = useState(false);
+  const [verificationPendingEmail, setVerificationPendingEmail] = useState<string | null>(null);
   const { goToLogin, goToHome } = useAppNavigation();
   const { isAuthenticated } = useAuth();
 
@@ -75,7 +78,15 @@ export default function SingUp() {
         masterConfirm: values.masterConfirm,
       };
 
-      await createUser(userData);
+      const response = await createUser(userData);
+      if (response.requiresEmailVerification) {
+        setVerificationPendingEmail(values.email.trim());
+        toast.success(
+          response.message || "Conta criada! Verifique seu e-mail antes de fazer login."
+        );
+        return;
+      }
+
       toast.success("Conta criada com sucesso! Faça login para continuar.");
       goToLogin();
     } catch (error: unknown) {
@@ -83,6 +94,21 @@ export default function SingUp() {
       toast.error(errorMessage);
     } finally {
       setIsLoading(false);
+    }
+  }
+
+  async function handleResendVerification() {
+    if (!verificationPendingEmail) return;
+    setIsResending(true);
+    try {
+      await authService.resendVerification(verificationPendingEmail);
+      toast.success("Reenviamos um novo link de confirmação para o seu e-mail.");
+    } catch (error: unknown) {
+      const errorMessage =
+        error instanceof Error ? error.message : "Erro ao reenviar verificação";
+      toast.error(errorMessage);
+    } finally {
+      setIsResending(false);
     }
   }
 
@@ -132,138 +158,182 @@ export default function SingUp() {
             <span className="font-pixelsans text-xl text-white">Interfaces Narrativas</span>
           </div>
 
-          <h2 className="text-2xl font-semibold text-foreground mb-2">Crie sua conta</h2>
-          <p className="text-muted-foreground text-sm mb-8">Preencha os dados abaixo para se cadastrar</p>
-
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
-              <FormField
-                control={form.control}
-                name="fullname"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="font-prompt">Nome Completo</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Seu nome completo" className="font-prompt" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="email"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="font-prompt">Email</FormLabel>
-                    <FormControl>
-                      <Input type="email" placeholder="seu@email.com" className="font-prompt" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="masterConfirm"
-                render={({ field }) => (
-                  <FormItem className="flex items-start space-x-3 space-y-0 rounded-md p-2">
-                    <FormControl>
-                      <Checkbox checked={field.value} onCheckedChange={field.onChange} />
-                    </FormControl>
-                    <div className="flex flex-col gap-1">
-                      <Label className="font-prompt">Desejo mestrar</Label>
-                      <p className="text-muted-foreground text-sm font-prompt">
-                        Ao selecionar esta opção, você confirma que{" "}
-                        <span className="bg-gradient-to-l from-primary to-accent bg-clip-text text-transparent">
-                          deseja emitir mesas de RPG.
-                        </span>
-                      </p>
-                    </div>
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="registrationNumber"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="font-prompt">Número de Matrícula (Obrigatório para mestres)</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Sua matrícula" className="font-prompt" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="phone"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="font-prompt">Telefone</FormLabel>
-                    <FormControl>
-                      <Input
-                        placeholder="(00) 99999-9999"
-                        className="font-prompt"
-                        {...field}
-                        onChange={(e) => {
-                          const formatted = formatPhoneNumber(e.target.value);
-                          field.onChange(formatted);
-                        }}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <div className="grid grid-cols-1 gap-4">
-                <FormField
-                  control={form.control}
-                  name="password"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="font-prompt">Senha</FormLabel>
-                      <FormControl>
-                        <Input type="password" placeholder="Digite sua senha" className="font-prompt" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="confirmPassword"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="font-prompt">Confirmar Senha</FormLabel>
-                      <FormControl>
-                        <Input type="password" placeholder="Digite sua senha novamente" className="font-prompt" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+          {verificationPendingEmail ? (
+            <div className="flex flex-col items-center text-center gap-4 py-2">
+              <div className="w-14 h-14 rounded-full bg-primary/20 flex items-center justify-center">
+                <Mail className="w-7 h-7 text-primary" />
               </div>
+              <h2 className="text-2xl font-semibold text-foreground">
+                Confirme seu e-mail
+              </h2>
+              <p className="text-muted-foreground text-sm font-prompt">
+                Enviamos um link de confirmação para{" "}
+                <strong className="text-foreground">{verificationPendingEmail}</strong>.
+                Acesse sua caixa de entrada e clique no link antes de fazer login.
+              </p>
+              <div className="w-full space-y-3 pt-3">
+                <Button
+                  type="button"
+                  variant="outline"
+                  disabled={isResending}
+                  onClick={handleResendVerification}
+                  className="w-full font-prompt uppercase"
+                >
+                  {isResending ? "Reenviando..." : "Reenviar e-mail de confirmação"}
+                </Button>
+                <Button
+                  type="button"
+                  onClick={goToLogin}
+                  className="w-full font-prompt uppercase"
+                >
+                  Ir para o Login
+                </Button>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  onClick={() => setVerificationPendingEmail(null)}
+                  className="w-full font-prompt text-xs text-muted-foreground hover:text-foreground"
+                >
+                  Digitou o e-mail errado? Voltar e corrigir
+                </Button>
+              </div>
+            </div>
+          ) : (
+            <>
+              <h2 className="text-2xl font-semibold text-foreground mb-2">Crie sua conta</h2>
+              <p className="text-muted-foreground text-sm mb-8">Preencha os dados abaixo para se cadastrar</p>
 
-              <FormDescription className="flex justify-center gap-1 font-prompt">
-                Já tem uma conta?
-                <Link to={ROUTES.LOGIN} className="text-accent hover:text-primary no-underline hover:cursor-pointer">
-                  Faça login
-                </Link>
-              </FormDescription>
+              <Form {...form}>
+                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
+                  <FormField
+                    control={form.control}
+                    name="fullname"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="font-prompt">Nome Completo</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Seu nome completo" className="font-prompt" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
 
-              <Button type="submit" className="w-full font-prompt uppercase" disabled={isLoading}>
-                {isLoading ? "Criando conta..." : "Criar conta"}
-              </Button>
-            </form>
-          </Form>
+                  <FormField
+                    control={form.control}
+                    name="email"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="font-prompt">Email</FormLabel>
+                        <FormControl>
+                          <Input type="email" placeholder="seu@email.com" className="font-prompt" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="masterConfirm"
+                    render={({ field }) => (
+                      <FormItem className="flex items-start space-x-3 space-y-0 rounded-md p-2">
+                        <FormControl>
+                          <Checkbox checked={field.value} onCheckedChange={field.onChange} />
+                        </FormControl>
+                        <div className="flex flex-col gap-1">
+                          <Label className="font-prompt">Desejo mestrar</Label>
+                          <p className="text-muted-foreground text-sm font-prompt">
+                            Ao selecionar esta opção, você confirma que{" "}
+                            <span className="bg-gradient-to-l from-primary to-accent bg-clip-text text-transparent">
+                              deseja emitir mesas de RPG.
+                            </span>
+                          </p>
+                        </div>
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="registrationNumber"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="font-prompt">Número de Matrícula (Obrigatório para mestres)</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Sua matrícula" className="font-prompt" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="phone"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="font-prompt">Telefone</FormLabel>
+                        <FormControl>
+                          <Input
+                            placeholder="(00) 99999-9999"
+                            className="font-prompt"
+                            {...field}
+                            onChange={(e) => {
+                              const formatted = formatPhoneNumber(e.target.value);
+                              field.onChange(formatted);
+                            }}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <div className="grid grid-cols-1 gap-4">
+                    <FormField
+                      control={form.control}
+                      name="password"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="font-prompt">Senha</FormLabel>
+                          <FormControl>
+                            <Input type="password" placeholder="Digite sua senha" className="font-prompt" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="confirmPassword"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="font-prompt">Confirmar Senha</FormLabel>
+                          <FormControl>
+                            <Input type="password" placeholder="Digite sua senha novamente" className="font-prompt" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+
+                  <FormDescription className="flex justify-center gap-1 font-prompt">
+                    Já tem uma conta?
+                    <Link to={ROUTES.LOGIN} className="text-accent hover:text-primary no-underline hover:cursor-pointer">
+                      Faça login
+                    </Link>
+                  </FormDescription>
+
+                  <Button type="submit" className="w-full font-prompt uppercase" disabled={isLoading}>
+                    {isLoading ? "Criando conta..." : "Criar conta"}
+                  </Button>
+                </form>
+              </Form>
+            </>
+          )}
         </div>
       </div>
     </div>

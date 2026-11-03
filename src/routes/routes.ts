@@ -1,9 +1,24 @@
-import { Login, Register, NotFound, Home, Sessions, Test, CreateSessions, CreateWorkshop, Profile, Admin } from '../pages';
+import {
+  Login,
+  Register,
+  VerifyEmail,
+  ResetPassword,
+  NotFound,
+  Home,
+  Sessions,
+  Test,
+  CreateSessions,
+  CreateWorkshop,
+  Profile,
+  Admin,
+} from '../pages';
 
 export const ROUTES = {
   HOME: '/',
   LOGIN: '/login',
   REGISTER: '/register',
+  VERIFY_EMAIL: '/verify-email',
+  RESET_PASSWORD: '/reset-password',
   SESSIONS: '/sessions',
   CREATE_SESSIONS: '/sessions/create',
   CREATE_WORKSHOP: '/workshops/create',
@@ -16,6 +31,8 @@ export const ROUTE_LABELS = {
   [ROUTES.HOME]: 'Início',
   [ROUTES.LOGIN]: 'Login',
   [ROUTES.REGISTER]: 'Cadastro',
+  [ROUTES.VERIFY_EMAIL]: 'Verificar E-mail',
+  [ROUTES.RESET_PASSWORD]: 'Recuperar Senha',
   [ROUTES.SESSIONS]: 'Sessões',
   [ROUTES.CREATE_SESSIONS]: 'Emitir Sessão',
   [ROUTES.CREATE_WORKSHOP]: 'Emitir Oficina',
@@ -42,6 +59,18 @@ export const routes = [
     element: Register,
     requireAuth: false,
     title: 'Criar Conta'
+  },
+  {
+    path: '/verify-email',
+    element: VerifyEmail,
+    requireAuth: false,
+    title: 'Verificar E-mail'
+  },
+  {
+    path: '/reset-password',
+    element: ResetPassword,
+    requireAuth: false,
+    title: 'Recuperar Senha'
   },
   {
     path: '/sessions',
