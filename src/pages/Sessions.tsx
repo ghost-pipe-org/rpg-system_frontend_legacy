@@ -7,6 +7,9 @@ import type { Session } from "@/services/sessionServices/session.types";
 import { getAprovedSessions, getApprovedWorkshops } from "@/services/sessionServices/session.services";
 import { Info, Swords, ScrollText, CalendarX, Clock, Ban, AlertCircle } from "lucide-react";
 import { EventBanner } from "@/components/custom/EventBanner";
+import { SemexBanner } from "@/components/custom/SemexBanner";
+import { EVENTS, getEventForDate } from "@/config/events";
+import type { EventId } from "@/config/events";
 
 interface AnimatedCardProps {
   index: number;
@@ -231,14 +234,19 @@ const Sessions = () => {
     await fetchWorkshops(false);
   };
 
+  const eventBanners: Record<EventId, React.ReactNode> = {
+    semex: <SemexBanner />,
+    muertos: <EventBanner />,
+  };
+
+  const otherSessions = sessions.filter((s) => !getEventForDate(s.approvedDate));
+
   return (
     <RootLayout>
       <div className="container mx-auto px-4 max-w-4xl">
         <h1 className="text-4xl font-bold mb-8 text-center">
           Eventos Disponíveis
         </h1>
-
-        <EventBanner />
 
         <Tabs defaultValue="sessions" onValueChange={handleTabChange} className="w-full">
           <TabsList className="grid w-full grid-cols-2 mb-8">
@@ -251,26 +259,58 @@ const Sessions = () => {
 
             {loadingSessions && <SessionSkeleton />}
 
-            {!loadingSessions && sessions.length === 0 && (
-              <p className="text-muted-foreground text-center py-8">
-                Não há mesas de RPG disponíveis no momento.
-              </p>
-            )}
+            {!loadingSessions && (
+              <div className="space-y-2">
+                {EVENTS.map((ev) => {
+                  const items = sessions.filter(
+                    (s) => getEventForDate(s.approvedDate)?.id === ev.id
+                  );
+                  return (
+                    <section key={ev.id} className="pt-2">
+                      {eventBanners[ev.id]}
+                      {items.length === 0 ? (
+                        <p className="text-muted-foreground text-center py-6">
+                          Ainda não há mesas disponíveis neste evento.
+                        </p>
+                      ) : (
+                        <div>
+                          {items.map((session, index) => (
+                            <AnimatedCard key={session.id || `session-${ev.id}-${index}`} index={index}>
+                              <SessionCard
+                                session={session}
+                                isExpanded={
+                                  session.id ? expandedSessions.includes(session.id) : false
+                                }
+                                onToggleExpand={toggleExpandSession}
+                                onEnrollSuccess={handleEnrollSuccess}
+                              />
+                            </AnimatedCard>
+                          ))}
+                        </div>
+                      )}
+                    </section>
+                  );
+                })}
 
-            {!loadingSessions && sessions.length > 0 && (
-              <div>
-                {sessions.map((session, index) => (
-                  <AnimatedCard key={session.id || `session-${index}`} index={index}>
-                    <SessionCard
-                      session={session}
-                      isExpanded={
-                        session.id ? expandedSessions.includes(session.id) : false
-                      }
-                      onToggleExpand={toggleExpandSession}
-                      onEnrollSuccess={handleEnrollSuccess}
-                    />
-                  </AnimatedCard>
-                ))}
+                {otherSessions.length > 0 && (
+                  <section className="pt-2">
+                    <h2 className="text-xl font-semibold text-center mb-4">
+                      Outras mesas
+                    </h2>
+                    {otherSessions.map((session, index) => (
+                      <AnimatedCard key={session.id || `session-other-${index}`} index={index}>
+                        <SessionCard
+                          session={session}
+                          isExpanded={
+                            session.id ? expandedSessions.includes(session.id) : false
+                          }
+                          onToggleExpand={toggleExpandSession}
+                          onEnrollSuccess={handleEnrollSuccess}
+                        />
+                      </AnimatedCard>
+                    ))}
+                  </section>
+                )}
               </div>
             )}
           </TabsContent>

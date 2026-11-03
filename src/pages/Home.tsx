@@ -1,6 +1,7 @@
 import { RootLayout } from "../components/layout";
 import { useDocumentTitle } from "../hooks/useDocumentTitle";
 import { EventBanner } from "@/components/custom/EventBanner";
+import { SemexBanner } from "@/components/custom/SemexBanner";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router";
 import { ROUTES } from "@/routes/routes";
@@ -14,7 +15,35 @@ const Home = () => {
     <RootLayout>
       <div className="w-full max-w-4xl mx-auto px-4 pb-12 flex flex-col items-center">
 
-        {/* Banner do Evento Dia de los Muertos */}
+        {/* Evento 1: IX SEMEX (05/11) */}
+        <SemexBanner />
+
+        <div className="w-full max-w-3xl mt-4 mb-12">
+          <div className="relative p-6 sm:p-8 rounded-2xl overflow-hidden bg-[#0a1128]/50 border border-cyan-500/20 shadow-[0_0_30px_rgba(0,255,255,0.05)] backdrop-blur-sm">
+            <div className="absolute top-0 left-0 w-1 h-full bg-gradient-to-b from-cyan-400 to-transparent" />
+
+            <p className="text-white/80 text-lg leading-relaxed mb-4 font-medium">
+              Entre 4 e 6 de novembro acontece o{" "}
+              <strong className="text-cyan-400">IX SEMEX - Seminário de Extensão da UEPB</strong>,
+              evento integrado de extensão, pesquisa e ensino a distância, com o tema
+              “Diálogos: Universidade e Sociedade em Transform(ação)”.
+            </p>
+            <p className="text-white/70 leading-relaxed mb-6">
+              A programação reúne rodas de conversa, palestras, extensão mostra, voz da
+              comunidade, apresentação de resultados e comunicações orais. No dia{" "}
+              <strong className="text-cyan-400">5 de novembro, das 8h às 12h</strong>, o
+              Tópicos Especiais em Aventuras participa com mesas de RPG do nosso sistema{" "}
+              <strong className="text-cyan-400">Caos em Nova Patos</strong>. Juntos somos mais!
+            </p>
+
+            <div className="flex items-center justify-center gap-2 text-cyan-500/60 font-mono text-sm tracking-widest uppercase">
+              <Flame size={14} />
+              <span>05 de novembro · 8h às 12h · UEPB Campus VII</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Evento 2: Dia de los Muertos (07/11) */}
         <EventBanner />
 
         {/* Sinopse do Evento */}

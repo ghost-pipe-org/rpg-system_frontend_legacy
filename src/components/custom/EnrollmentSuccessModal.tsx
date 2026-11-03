@@ -12,7 +12,7 @@ import { CheckCircle2, Calendar, MapPin, User, Swords, ScrollText, ArrowRight } 
 import type { Session } from "@/services/sessionServices/session.types";
 import { formatDateBR } from "@/utils/formatDate";
 import { useNavigate } from "react-router";
-import { EVENT_THEME } from "@/config/eventTheme";
+import { EVENTS, getEventForDate } from "@/config/events";
 
 interface EnrollmentSuccessModalProps {
   open: boolean;
@@ -38,77 +38,85 @@ export function EnrollmentSuccessModal({
     ? event.facilitators.map((f) => f.user.name).join(", ")
     : "Não informado";
 
+  // O tema do modal segue o evento ao qual a mesa pertence (pela data aprovada)
+  const eventInfo = getEventForDate(event.approvedDate);
+  const palette = (eventInfo ?? EVENTS[0]).palette;
+  const label = eventInfo?.modalLabel;
+  const message = eventInfo?.modalMessage ?? "Sua vaga foi reservada com sucesso no sistema.";
+  const tip =
+    eventInfo?.modalTip ??
+    "Chegue com antecedência no local. Você pode acompanhar ou cancelar suas inscrições no seu perfil.";
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
         className="sm:max-w-md text-foreground font-sans p-6 rounded-xl shadow-2xl"
         style={{
-          background: `linear-gradient(160deg, ${EVENT_THEME.black} 0%, #1a0505 55%, ${EVENT_THEME.wine} 100%)`,
-          border: "1px solid rgba(232, 96, 76, 0.45)",
-          boxShadow: "0 0 40px rgba(180, 30, 20, 0.35)",
+          background: palette.background,
+          border: `1px solid ${palette.line}`,
+          boxShadow: palette.boxShadow,
         }}
       >
         <DialogHeader className="flex flex-col items-center text-center pt-2 space-y-2">
           <div
             className="w-16 h-16 rounded-full flex items-center justify-center mb-1 animate-pulse"
             style={{
-              background: "rgba(232, 96, 76, 0.15)",
-              border: "1px solid rgba(232, 96, 76, 0.5)",
-              color: EVENT_THEME.coral,
+              background: palette.panel,
+              border: `1px solid ${palette.line}`,
+              color: palette.accent,
             }}
           >
             <CheckCircle2 className="w-10 h-10 stroke-[2.5]" />
           </div>
-          <span
-            className="text-[10px] tracking-[0.3em] uppercase"
-            style={{ color: EVENT_THEME.coral }}
-          >
-            Dia de los Muertos · 07 Nov (adiado)
-          </span>
+          {label && (
+            <span
+              className="text-[10px] tracking-[0.3em] uppercase"
+              style={{ color: palette.accent }}
+            >
+              {label}
+            </span>
+          )}
           <DialogTitle
             className="text-3xl tracking-wide font-normal"
-            style={{ fontFamily: EVENT_THEME.titleFont, color: EVENT_THEME.cream }}
+            style={{ fontFamily: palette.titleFont, color: palette.text }}
           >
             Inscrição Confirmada!
           </DialogTitle>
           <DialogDescription
             className="text-sm font-prompt italic"
-            style={{ color: "rgba(246,236,224,0.75)" }}
+            style={{ color: palette.text, opacity: 0.75 }}
           >
-            Sua vaga foi reservada. Prepare-se: algumas almas ainda não descansaram...
+            {message}
           </DialogDescription>
         </DialogHeader>
 
         {/* Detalhes do Evento */}
         <div
           className="space-y-3 my-2 p-4 rounded-lg"
-          style={{
-            background: "rgba(74, 10, 10, 0.35)",
-            border: "1px solid rgba(232, 96, 76, 0.3)",
-          }}
+          style={{ background: palette.panel, border: `1px solid ${palette.line}` }}
         >
           <div
             className="flex items-start justify-between gap-2 pb-2"
-            style={{ borderBottom: "1px solid rgba(232, 96, 76, 0.3)" }}
+            style={{ borderBottom: `1px solid ${palette.line}` }}
           >
             <h4
               className="font-semibold text-lg line-clamp-2"
-              style={{ fontFamily: EVENT_THEME.titleFont, color: EVENT_THEME.cream }}
+              style={{ fontFamily: palette.titleFont, color: palette.text }}
             >
               {event.title}
             </h4>
             <Badge
               variant="secondary"
               className="gap-1 flex-shrink-0 font-prompt border-0"
-              style={{ background: "rgba(232, 96, 76, 0.2)", color: EVENT_THEME.cream }}
+              style={{ background: palette.line, color: palette.text }}
             >
               {isSession ? (
                 <>
-                  <Swords className="w-3 h-3 text-[#e8604c]" /> Mesa RPG
+                  <Swords className="w-3 h-3" style={{ color: palette.accent }} /> Mesa RPG
                 </>
               ) : (
                 <>
-                  <ScrollText className="w-3 h-3 text-[#e8604c]" /> Oficina
+                  <ScrollText className="w-3 h-3" style={{ color: palette.accent }} /> Oficina
                 </>
               )}
             </Badge>
@@ -123,7 +131,7 @@ export function EnrollmentSuccessModal({
             )}
 
             <p className="flex items-center gap-2">
-              <Calendar className="w-4 h-4 text-[#e8604c] shrink-0" />
+              <Calendar className="w-4 h-4 shrink-0" style={{ color: palette.accent }} />
               <span>
                 {event.approvedDate
                   ? formatDateBR(event.approvedDate)
@@ -139,12 +147,12 @@ export function EnrollmentSuccessModal({
             </p>
 
             <p className="flex items-center gap-2">
-              <MapPin className="w-4 h-4 text-[#e8604c] shrink-0" />
+              <MapPin className="w-4 h-4 shrink-0" style={{ color: palette.accent }} />
               <span>{event.location || "Local a definir (UEPB)"}</span>
             </p>
 
             <p className="flex items-center gap-2">
-              <User className="w-4 h-4 text-[#e8604c] shrink-0" />
+              <User className="w-4 h-4 shrink-0" style={{ color: palette.accent }} />
               <span>
                 <strong className="font-mono text-foreground font-medium">
                   {isSession ? "Mestre:" : "Ministrante:"}
@@ -157,17 +165,17 @@ export function EnrollmentSuccessModal({
 
         <p
           className="text-xs text-center font-prompt px-2"
-          style={{ color: "rgba(246,236,224,0.65)" }}
+          style={{ color: palette.text, opacity: 0.65 }}
         >
-          🕯️ Chegue com antecedência no local. Você pode acompanhar ou cancelar suas inscrições no seu perfil.
+          {tip}
         </p>
 
         <DialogFooter className="flex flex-col sm:flex-row gap-2 mt-3">
           <Button
             variant="outline"
             onClick={() => onOpenChange(false)}
-            className="w-full sm:w-1/2 uppercase font-semibold cursor-pointer bg-transparent hover:bg-[#e8604c]/10"
-            style={{ borderColor: "rgba(232, 96, 76, 0.5)", color: EVENT_THEME.cream }}
+            className="w-full sm:w-1/2 uppercase font-semibold cursor-pointer bg-transparent"
+            style={{ borderColor: palette.line, color: palette.text }}
           >
             Fechar
           </Button>
@@ -177,10 +185,7 @@ export function EnrollmentSuccessModal({
               navigate("/profile");
             }}
             className="w-full sm:w-1/2 uppercase font-semibold gap-2 cursor-pointer border-0"
-            style={{
-              background: "linear-gradient(135deg, #e8604c, #a31f1f)",
-              color: EVENT_THEME.cream,
-            }}
+            style={{ background: palette.button, color: palette.text }}
           >
             Ver Meu Perfil
             <ArrowRight className="w-4 h-4" />
