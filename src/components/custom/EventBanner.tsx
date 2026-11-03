@@ -436,10 +436,11 @@ export function EventBanner({ onSelectDate, initialDate }: EventBannerProps) {
               type="button"
               aria-label={`Selecionar ${banner.label}`}
               onClick={() => setCurrentIndex(i)}
-              className={`h-1.5 rounded-full transition-all duration-300 cursor-pointer ${currentIndex === i
+              className={`h-1.5 rounded-full transition-all duration-300 cursor-pointer ${
+                currentIndex === i
                   ? "bg-white/90 w-6"
                   : "bg-white/40 w-2 hover:bg-white/60"
-                }`}
+              }`}
             />
           ))}
         </div>

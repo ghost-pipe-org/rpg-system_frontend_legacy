@@ -107,17 +107,17 @@ const Home = () => {
               style={
                 isSemex
                   ? {
-                    background: "linear-gradient(135deg, #06b6d4, #3b82f6)",
-                    boxShadow: "0 4px 20px rgba(6, 182, 212, 0.35)",
-                    border: "none",
-                    color: "#ffffff",
-                  }
+                      background: "linear-gradient(135deg, #06b6d4, #3b82f6)",
+                      boxShadow: "0 4px 20px rgba(6, 182, 212, 0.35)",
+                      border: "none",
+                      color: "#ffffff",
+                    }
                   : {
-                    background: "linear-gradient(135deg, #e8604c, #a31f1f)",
-                    boxShadow: "0 4px 20px rgba(232, 96, 76, 0.35)",
-                    border: "none",
-                    color: EVENT_THEME.cream,
-                  }
+                      background: "linear-gradient(135deg, #e8604c, #a31f1f)",
+                      boxShadow: "0 4px 20px rgba(232, 96, 76, 0.35)",
+                      border: "none",
+                      color: EVENT_THEME.cream,
+                    }
               }
             >
               Inscreva-se nas mesas <ChevronRight size={18} />
