@@ -3,13 +3,11 @@ import { SessionCard, SessionSkeleton } from "@/components/custom/SessionCard";
 import { WorkshopCard, WorkshopSkeleton } from "@/components/custom/WorkshopCard";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useState, useEffect } from "react";
+import { useSearchParams } from "react-router";
 import type { Session } from "@/services/sessionServices/session.types";
 import { getAprovedSessions, getApprovedWorkshops } from "@/services/sessionServices/session.services";
 import { Info, Swords, ScrollText, CalendarX, Clock, Ban, AlertCircle } from "lucide-react";
 import { EventBanner } from "@/components/custom/EventBanner";
-import { SemexBanner } from "@/components/custom/SemexBanner";
-import { EVENTS, getEventForDate } from "@/config/events";
-import type { EventId } from "@/config/events";
 
 interface AnimatedCardProps {
   index: number;
@@ -140,6 +138,9 @@ function RulesPanel({ rules }: { rules: typeof sessionRules }) {
 }
 
 const Sessions = () => {
+  const [searchParams] = useSearchParams();
+  const initialDate = searchParams.get("date") || "2026-11-05";
+
   const [expandedSessions, setExpandedSessions] = useState<string[]>([]);
   const [expandedWorkshops, setExpandedWorkshops] = useState<string[]>([]);
   const [sessions, setSessions] = useState<Session[]>([]);
@@ -147,6 +148,7 @@ const Sessions = () => {
   const [loadingSessions, setLoadingSessions] = useState(true);
   const [loadingWorkshops, setLoadingWorkshops] = useState(false);
   const [workshopsFetched, setWorkshopsFetched] = useState(false);
+  const [selectedEventDate, setSelectedEventDate] = useState<string>(initialDate);
 
   const toggleExpandSession = (sessionId: string) => {
     setExpandedSessions((prev) =>
@@ -234,12 +236,12 @@ const Sessions = () => {
     await fetchWorkshops(false);
   };
 
-  const eventBanners: Record<EventId, React.ReactNode> = {
-    semex: <SemexBanner />,
-    muertos: <EventBanner />,
-  };
-
-  const otherSessions = sessions.filter((s) => !getEventForDate(s.approvedDate));
+  const filteredSessions = sessions.filter((s) =>
+    s.approvedDate?.includes(selectedEventDate)
+  );
+  const filteredWorkshops = workshops.filter((w) =>
+    w.approvedDate?.includes(selectedEventDate)
+  );
 
   return (
     <RootLayout>
@@ -247,6 +249,11 @@ const Sessions = () => {
         <h1 className="text-4xl font-bold mb-8 text-center">
           Eventos Disponíveis
         </h1>
+
+        <EventBanner
+          initialDate={initialDate}
+          onSelectDate={setSelectedEventDate}
+        />
 
         <Tabs defaultValue="sessions" onValueChange={handleTabChange} className="w-full">
           <TabsList className="grid w-full grid-cols-2 mb-8">
@@ -259,58 +266,26 @@ const Sessions = () => {
 
             {loadingSessions && <SessionSkeleton />}
 
-            {!loadingSessions && (
-              <div className="space-y-2">
-                {EVENTS.map((ev) => {
-                  const items = sessions.filter(
-                    (s) => getEventForDate(s.approvedDate)?.id === ev.id
-                  );
-                  return (
-                    <section key={ev.id} className="pt-2">
-                      {eventBanners[ev.id]}
-                      {items.length === 0 ? (
-                        <p className="text-muted-foreground text-center py-6">
-                          Ainda não há mesas disponíveis neste evento.
-                        </p>
-                      ) : (
-                        <div>
-                          {items.map((session, index) => (
-                            <AnimatedCard key={session.id || `session-${ev.id}-${index}`} index={index}>
-                              <SessionCard
-                                session={session}
-                                isExpanded={
-                                  session.id ? expandedSessions.includes(session.id) : false
-                                }
-                                onToggleExpand={toggleExpandSession}
-                                onEnrollSuccess={handleEnrollSuccess}
-                              />
-                            </AnimatedCard>
-                          ))}
-                        </div>
-                      )}
-                    </section>
-                  );
-                })}
+            {!loadingSessions && filteredSessions.length === 0 && (
+              <p className="text-muted-foreground text-center py-8">
+                Não há mesas de RPG disponíveis para esta data.
+              </p>
+            )}
 
-                {otherSessions.length > 0 && (
-                  <section className="pt-2">
-                    <h2 className="text-xl font-semibold text-center mb-4">
-                      Outras mesas
-                    </h2>
-                    {otherSessions.map((session, index) => (
-                      <AnimatedCard key={session.id || `session-other-${index}`} index={index}>
-                        <SessionCard
-                          session={session}
-                          isExpanded={
-                            session.id ? expandedSessions.includes(session.id) : false
-                          }
-                          onToggleExpand={toggleExpandSession}
-                          onEnrollSuccess={handleEnrollSuccess}
-                        />
-                      </AnimatedCard>
-                    ))}
-                  </section>
-                )}
+            {!loadingSessions && filteredSessions.length > 0 && (
+              <div>
+                {filteredSessions.map((session, index) => (
+                  <AnimatedCard key={session.id || `session-${index}`} index={index}>
+                    <SessionCard
+                      session={session}
+                      isExpanded={
+                        session.id ? expandedSessions.includes(session.id) : false
+                      }
+                      onToggleExpand={toggleExpandSession}
+                      onEnrollSuccess={handleEnrollSuccess}
+                    />
+                  </AnimatedCard>
+                ))}
               </div>
             )}
           </TabsContent>
@@ -320,15 +295,15 @@ const Sessions = () => {
 
             {loadingWorkshops && <WorkshopSkeleton />}
 
-            {!loadingWorkshops && workshopsFetched && workshops.length === 0 && (
+            {!loadingWorkshops && workshopsFetched && filteredWorkshops.length === 0 && (
               <p className="text-muted-foreground text-center py-8">
-                Não há oficinas disponíveis no momento.
+                Não há oficinas disponíveis para esta data.
               </p>
             )}
 
-            {!loadingWorkshops && workshops.length > 0 && (
+            {!loadingWorkshops && filteredWorkshops.length > 0 && (
               <div>
-                {workshops.map((workshop, index) => (
+                {filteredWorkshops.map((workshop, index) => (
                   <AnimatedCard key={workshop.id || `workshop-${index}`} index={index}>
                     <WorkshopCard
                       workshop={workshop}

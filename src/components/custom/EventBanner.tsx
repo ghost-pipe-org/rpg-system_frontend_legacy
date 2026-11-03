@@ -1,6 +1,19 @@
-import { MapPin, Clock, Dice6, Flame, Info, Users, Skull, TriangleAlert } from "lucide-react";
-import { useEffect, useRef } from "react";
+import {
+  Calendar,
+  ChevronLeft,
+  ChevronRight,
+  Clock,
+  Dice6,
+  Flame,
+  Info,
+  MapPin,
+  Skull,
+  TriangleAlert,
+  Users,
+} from "lucide-react";
+import { useEffect, useRef, useState } from "react";
 import { EVENT_THEME as MUERTOS } from "@/config/eventTheme";
+import { SemexBanner } from "@/components/custom/SemexBanner";
 
 const MUERTOS_TITLE_FONT = MUERTOS.titleFont;
 
@@ -100,10 +113,10 @@ function DotTexture() {
   );
 }
 
-export function EventBanner() {
+function MuertosBanner() {
   return (
     <div
-      className="relative w-full rounded-2xl overflow-hidden mb-8 shadow-2xl"
+      className="relative w-full h-full rounded-2xl overflow-hidden flex flex-col justify-center"
       style={{
         background: `linear-gradient(160deg, ${MUERTOS.black} 0%, #1a0505 45%, ${MUERTOS.wine} 100%)`,
         border: "1px solid rgba(232, 96, 76, 0.35)",
@@ -123,7 +136,7 @@ export function EventBanner() {
         }}
       />
 
-      <div className="relative z-10 px-6 py-10 sm:px-12 sm:py-14 flex flex-col items-center text-center gap-8">
+      <div className="relative z-10 px-6 pt-10 pb-12 sm:px-12 sm:pt-14 sm:pb-14 flex flex-col items-center text-center gap-8">
         {/* Aviso de adiamento */}
         <div
           className="flex flex-col sm:flex-row items-center gap-2 sm:gap-3 px-4 py-2.5 rounded-lg text-xs sm:text-sm font-semibold tracking-wider uppercase"
@@ -297,6 +310,138 @@ export function EventBanner() {
             <Users size={12} style={{ color: MUERTOS.coral }} />
             <span>Evento gratuito | Inscrições para o público geral</span>
           </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+interface EventBannerProps {
+  onSelectDate?: (date: string) => void;
+  initialDate?: string;
+}
+
+const BANNERS = [
+  {
+    id: "semex",
+    label: "05/11 · IX SEMEX",
+    accent: "#22d3ee",
+    activeBg: "rgba(6, 182, 212, 0.16)",
+    activeBorder: "rgba(34, 211, 238, 0.55)",
+    dateFilter: "2026-11-05",
+    render: () => <SemexBanner />,
+  },
+  {
+    id: "muertos",
+    label: "07/11 · Dia de los Muertos",
+    accent: MUERTOS.coral,
+    activeBg: "rgba(232, 96, 76, 0.16)",
+    activeBorder: "rgba(232, 96, 76, 0.6)",
+    dateFilter: "2026-11-07",
+    render: () => <MuertosBanner />,
+  },
+];
+
+export function EventBanner({ onSelectDate, initialDate }: EventBannerProps) {
+  const [currentIndex, setCurrentIndex] = useState(() => {
+    if (!initialDate) return 0;
+    const found = BANNERS.findIndex((b) => b.dateFilter === initialDate);
+    return found >= 0 ? found : 0;
+  });
+
+  useEffect(() => {
+    if (onSelectDate) {
+      onSelectDate(BANNERS[currentIndex].dateFilter);
+    }
+  }, [currentIndex, onSelectDate]);
+
+  const nextBanner = () => {
+    setCurrentIndex((prev) => (prev + 1) % BANNERS.length);
+  };
+
+  const prevBanner = () => {
+    setCurrentIndex((prev) => (prev - 1 + BANNERS.length) % BANNERS.length);
+  };
+
+  return (
+    <div className="w-full mb-8">
+      {/* Filtro rápido de datas */}
+      <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-3 mb-4">
+        {BANNERS.map((banner, idx) => {
+          const active = currentIndex === idx;
+          return (
+            <button
+              key={banner.id}
+              type="button"
+              onClick={() => setCurrentIndex(idx)}
+              className="flex items-center gap-2 px-4 py-2 rounded-full text-xs sm:text-sm font-semibold tracking-wide transition-all duration-300 cursor-pointer"
+              style={{
+                background: active ? banner.activeBg : "rgba(255, 255, 255, 0.04)",
+                border: `1px solid ${active ? banner.activeBorder : "rgba(255, 255, 255, 0.12)"}`,
+                color: active ? "#ffffff" : "rgba(255, 255, 255, 0.6)",
+                boxShadow: active ? `0 0 20px ${banner.activeBg}` : "none",
+              }}
+            >
+              <Calendar
+                size={14}
+                style={{ color: active ? banner.accent : "rgba(255, 255, 255, 0.45)" }}
+              />
+              <span>{banner.label}</span>
+            </button>
+          );
+        })}
+      </div>
+
+      {/* Carrossel dos banners */}
+      <div className="relative w-full rounded-2xl overflow-hidden group shadow-2xl transition-all duration-500">
+        <div className="w-full grid grid-cols-1">
+          {BANNERS.map((banner, idx) => (
+            <div
+              key={banner.id}
+              className="col-start-1 row-start-1 w-full h-full transition-opacity duration-500 ease-in-out"
+              style={{
+                opacity: currentIndex === idx ? 1 : 0,
+                pointerEvents: currentIndex === idx ? "auto" : "none",
+              }}
+            >
+              {banner.render()}
+            </div>
+          ))}
+        </div>
+
+        {/* Navigation Controls */}
+        <button
+          type="button"
+          aria-label="Evento anterior"
+          onClick={prevBanner}
+          className="absolute left-2 sm:left-4 top-1/2 -translate-y-1/2 p-2 rounded-full bg-black/30 text-white/70 sm:opacity-0 sm:group-hover:opacity-100 transition-all hover:bg-black/60 hover:scale-110 hover:text-white z-30 backdrop-blur-sm cursor-pointer"
+        >
+          <ChevronLeft size={24} />
+        </button>
+
+        <button
+          type="button"
+          aria-label="Próximo evento"
+          onClick={nextBanner}
+          className="absolute right-2 sm:right-4 top-1/2 -translate-y-1/2 p-2 rounded-full bg-black/30 text-white/70 sm:opacity-0 sm:group-hover:opacity-100 transition-all hover:bg-black/60 hover:scale-110 hover:text-white z-30 backdrop-blur-sm cursor-pointer"
+        >
+          <ChevronRight size={24} />
+        </button>
+
+        {/* Indicators */}
+        <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-2 z-30">
+          {BANNERS.map((banner, i) => (
+            <button
+              key={banner.id}
+              type="button"
+              aria-label={`Selecionar ${banner.label}`}
+              onClick={() => setCurrentIndex(i)}
+              className={`h-1.5 rounded-full transition-all duration-300 cursor-pointer ${currentIndex === i
+                  ? "bg-white/90 w-6"
+                  : "bg-white/40 w-2 hover:bg-white/60"
+                }`}
+            />
+          ))}
         </div>
       </div>
     </div>

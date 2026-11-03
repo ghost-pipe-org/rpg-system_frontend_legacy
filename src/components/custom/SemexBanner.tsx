@@ -74,7 +74,7 @@ function CyberGrid() {
 export function SemexBanner() {
   return (
     <div
-      className="relative w-full rounded-2xl overflow-hidden mb-8 shadow-2xl"
+      className="relative w-full h-full rounded-2xl overflow-hidden flex flex-col justify-center"
       style={{
         background: "linear-gradient(180deg, #050a15 0%, #0a1128 100%)",
         border: "1px solid rgba(0, 255, 255, 0.2)",
@@ -93,7 +93,7 @@ export function SemexBanner() {
         }}
       />
 
-      <div className="relative z-10 px-6 py-10 sm:px-12 sm:py-14 flex flex-col items-center text-center gap-8">
+      <div className="relative z-10 px-6 pt-10 pb-12 sm:px-12 sm:pt-14 sm:pb-14 flex flex-col items-center text-center gap-8">
         {/* Cabeçalho */}
         <div className="flex items-center gap-3 text-cyan-400 font-mono text-xs sm:text-sm tracking-widest uppercase">
           <Terminal size={14} />
