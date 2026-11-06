@@ -3,7 +3,6 @@ import { SessionCard, SessionSkeleton } from "@/components/custom/SessionCard";
 import { WorkshopCard, WorkshopSkeleton } from "@/components/custom/WorkshopCard";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useState, useEffect } from "react";
-import { useSearchParams } from "react-router";
 import type { Session } from "@/services/sessionServices/session.types";
 import { getAprovedSessions, getApprovedWorkshops } from "@/services/sessionServices/session.services";
 import { Info, Swords, ScrollText, CalendarX, Clock, Ban, AlertCircle } from "lucide-react";
@@ -138,9 +137,6 @@ function RulesPanel({ rules }: { rules: typeof sessionRules }) {
 }
 
 const Sessions = () => {
-  const [searchParams] = useSearchParams();
-  const initialDate = searchParams.get("date") || "2026-11-05";
-
   const [expandedSessions, setExpandedSessions] = useState<string[]>([]);
   const [expandedWorkshops, setExpandedWorkshops] = useState<string[]>([]);
   const [sessions, setSessions] = useState<Session[]>([]);
@@ -148,7 +144,6 @@ const Sessions = () => {
   const [loadingSessions, setLoadingSessions] = useState(true);
   const [loadingWorkshops, setLoadingWorkshops] = useState(false);
   const [workshopsFetched, setWorkshopsFetched] = useState(false);
-  const [selectedEventDate, setSelectedEventDate] = useState<string>(initialDate);
 
   const toggleExpandSession = (sessionId: string) => {
     setExpandedSessions((prev) =>
@@ -236,13 +231,6 @@ const Sessions = () => {
     await fetchWorkshops(false);
   };
 
-  const filteredSessions = sessions.filter((s) =>
-    s.approvedDate?.includes(selectedEventDate)
-  );
-  const filteredWorkshops = workshops.filter((w) =>
-    w.approvedDate?.includes(selectedEventDate)
-  );
-
   return (
     <RootLayout>
       <div className="container mx-auto px-4 max-w-4xl">
@@ -250,10 +238,7 @@ const Sessions = () => {
           Eventos Disponíveis
         </h1>
 
-        <EventBanner
-          initialDate={initialDate}
-          onSelectDate={setSelectedEventDate}
-        />
+        <EventBanner />
 
         <Tabs defaultValue="sessions" onValueChange={handleTabChange} className="w-full">
           <TabsList className="grid w-full grid-cols-2 mb-8">
@@ -266,15 +251,15 @@ const Sessions = () => {
 
             {loadingSessions && <SessionSkeleton />}
 
-            {!loadingSessions && filteredSessions.length === 0 && (
+            {!loadingSessions && sessions.length === 0 && (
               <p className="text-muted-foreground text-center py-8">
-                Não há mesas de RPG disponíveis para esta data.
+                Não há mesas de RPG disponíveis no momento.
               </p>
             )}
 
-            {!loadingSessions && filteredSessions.length > 0 && (
+            {!loadingSessions && sessions.length > 0 && (
               <div>
-                {filteredSessions.map((session, index) => (
+                {sessions.map((session, index) => (
                   <AnimatedCard key={session.id || `session-${index}`} index={index}>
                     <SessionCard
                       session={session}
@@ -295,15 +280,15 @@ const Sessions = () => {
 
             {loadingWorkshops && <WorkshopSkeleton />}
 
-            {!loadingWorkshops && workshopsFetched && filteredWorkshops.length === 0 && (
+            {!loadingWorkshops && workshopsFetched && workshops.length === 0 && (
               <p className="text-muted-foreground text-center py-8">
-                Não há oficinas disponíveis para esta data.
+                Não há oficinas disponíveis no momento.
               </p>
             )}
 
-            {!loadingWorkshops && filteredWorkshops.length > 0 && (
+            {!loadingWorkshops && workshops.length > 0 && (
               <div>
-                {filteredWorkshops.map((workshop, index) => (
+                {workshops.map((workshop, index) => (
                   <AnimatedCard key={workshop.id || `workshop-${index}`} index={index}>
                     <WorkshopCard
                       workshop={workshop}
